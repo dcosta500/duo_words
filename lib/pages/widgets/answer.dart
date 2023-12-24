@@ -17,25 +17,28 @@ class TextAnswer extends Answer {
   Widget build(BuildContext context) {
     TextEditingController textEditingController = TextEditingController();
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 40.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          MyTextField(key: myKey, textEditingController: textEditingController),
-          SizedBox(height: 20.0),
-          ElevatedButton(
-            onPressed: () {
-              String answer = textEditingController.text;
-              textEditingController.clear();
-              textEditingController.dispose();
-              myKey = GlobalKey();
-              answerQuestion(question, answer).call();
-            },
-            child: Text("Done"),
-          )
-        ],
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        MyTextField(key: myKey, textEditingController: textEditingController),
+        SizedBox(height: 50.0),
+        ElevatedButton(
+          onPressed: () {
+            String answer = textEditingController.text;
+
+            if (answer.isEmpty) {
+              return;
+            }
+
+            textEditingController.clear();
+            textEditingController.dispose();
+            myKey = GlobalKey();
+
+            answerQuestion(question, answer).call();
+          },
+          child: Text("Done"),
+        )
+      ],
     );
   }
 }
@@ -59,12 +62,9 @@ class GenderAnswer extends Answer {
         )
         .toList();
 
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 40.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: buttons,
-      ),
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: buttons,
     );
   }
 }

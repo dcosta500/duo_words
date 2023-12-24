@@ -18,4 +18,17 @@ class GenderClass {
         return "NA";
     }
   }
+
+  static String getAbreviatedString(Gender gender) {
+    switch (gender) {
+      case Gender.M:
+        return "Masc.";
+      case Gender.F:
+        return "Fem.";
+      case Gender.N:
+        return "Nt.";
+      default:
+        return "NA";
+    }
+  }
 }

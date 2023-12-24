@@ -12,11 +12,13 @@ class QuestionParser {
     // Generation Logic (change if needed)
     for (Word w in wordsList) {
       // Native to Translation
-      questions.add(Question(prompt: w.native, answers: w.translation));
+      questions.add(Question(
+          prompt: w.native, answers: w.translation, isPromptNative: true));
 
       // Translation to Native
       for (String translation in w.translation) {
-        questions.add(Question(prompt: translation, answers: [w.native]));
+        questions.add(Question(
+            prompt: translation, answers: [w.native], isPromptNative: false));
       }
 
       // Gender Question
