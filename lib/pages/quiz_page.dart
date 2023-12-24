@@ -1,5 +1,6 @@
 // ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
 
+import 'package:audioplayers/audioplayers.dart';
 import 'package:duo_words/pages/widgets/answer.dart';
 import 'package:duo_words/utils/question/question.dart';
 import 'package:duo_words/utils/quiz_configuration.dart';
@@ -8,6 +9,9 @@ import 'package:flutter/material.dart';
 
 import '../utils/quiz.dart';
 import 'consts.dart';
+
+const String CORRECT_SOUND_PATH = '/sounds/correct_sound.mp3';
+const String INCORRECT_SOUND_PATH = '/sounds/incorrect_sound.mp3';
 
 class QuizPage extends StatelessWidget {
   const QuizPage({super.key});
@@ -31,9 +35,17 @@ class QuizContent extends StatefulWidget {
 }
 
 class _QuizContentState extends State<QuizContent> {
-  late GlobalKey<_StatusWidgetState> myKey;
+  AudioPlayer audioPlayer = AudioPlayer();
+
+  late GlobalKey<_StatusWidgetState> statusKey;
   late Question question;
   late Quiz quiz;
+
+  @override
+  void dispose() {
+    audioPlayer.dispose();
+    super.dispose();
+  }
 
   bool wasLastQuestionRight = false;
   bool showStatusText = false;
@@ -42,7 +54,7 @@ class _QuizContentState extends State<QuizContent> {
     quiz = Quiz(
         wordsList: genListForGerman(), quizConfiguration: QuizConfiguration());
     question = quiz.getNextQuestion();
-    myKey = GlobalKey<_StatusWidgetState>();
+    statusKey = GlobalKey<_StatusWidgetState>();
   }
 
   String getHelperText() {
@@ -53,14 +65,26 @@ class _QuizContentState extends State<QuizContent> {
     }
   }
 
+  void playSound() async {
+    try {
+      await audioPlayer.play(AssetSource(
+          wasLastQuestionRight ? CORRECT_SOUND_PATH : INCORRECT_SOUND_PATH));
+    } catch (e) {
+      print("Error playing audio.");
+    }
+  }
+
   void Function()? answerQuestion(Question q, String answer) {
     return () {
       print("Answering question '${q.prompt}' with answer $answer.");
 
       question = quiz.getNextQuestion();
       showStatusText = true;
+
       wasLastQuestionRight = q.isAnswerCorrect(answer);
-      myKey = GlobalKey<_StatusWidgetState>();
+      playSound();
+
+      statusKey = GlobalKey<_StatusWidgetState>();
 
       setState(() {});
     };
@@ -94,7 +118,8 @@ class _QuizContentState extends State<QuizContent> {
                 ),
                 SizedBox(width: 300.0, child: Divider()),
                 showStatusText
-                    ? StatusWidget(key: myKey, isRight: wasLastQuestionRight)
+                    ? StatusWidget(
+                        key: statusKey, isRight: wasLastQuestionRight)
                     : Container(),
               ],
             ),
