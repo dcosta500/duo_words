@@ -2,20 +2,26 @@ import 'package:duo_words/utils/word/word.dart';
 
 class Question {
   late String _prompt;
+  late bool _isGenderQuestion;
+
+  // All in lower case
   late List<String> _answers;
   late Set<String> _answerSet;
-  late bool _isGenderQuestion;
 
   Question({required String prompt, required List<String> answers}) {
     _prompt = prompt;
     _answers = answers;
-    _answerSet = Set.from(_answers);
+
+    for (String answer in answers) {
+      _answers.add(answer.toLowerCase());
+      _answerSet.add(answer.toLowerCase());
+    }
 
     _isGenderQuestion = false;
   }
 
   Question.gender({required String prompt, required Gender gender}) {
-    Question(prompt: prompt, answers: [gender.toString()]);
+    Question(prompt: prompt, answers: [gender.toString().toLowerCase()]);
     _isGenderQuestion = true;
   }
 
@@ -27,11 +33,7 @@ class Question {
 
   bool get isGenderQuestion => _isGenderQuestion;
 
-  bool isMultipleChoiceQuestion() {
-    return _answerSet.length > 1;
-  }
-
   bool isAnswerCorrect(String answer) {
-    return _answerSet.contains(answer);
+    return _answerSet.contains(answer.toLowerCase());
   }
 }
