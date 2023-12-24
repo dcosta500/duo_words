@@ -1,6 +1,6 @@
 // ignore_for_file: prefer_const_constructors
 
-import 'package:duo_words/pages/menuPage.dart';
+import 'package:duo_words/pages/menu_page.dart';
 import 'package:flutter/material.dart';
 
 void main() {
