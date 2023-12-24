@@ -1,9 +1,4 @@
-enum Gender {
-  M, // Masculine
-  F, // Feminine
-  N, // Neuter
-  NA, // Not Applicable
-}
+import 'gender.dart';
 
 class Word {
   late String _native;

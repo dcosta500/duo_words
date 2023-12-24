@@ -1,23 +1,27 @@
 import 'package:duo_words/utils/word/word.dart';
 
-List<Word> wordsList = [];
+import 'gender.dart';
+
+List<Word> _wordList = [];
 
 void addWithList(
     {required String native,
     required List<String> translation,
     required Gender gender}) {
-  wordsList.add(Word(native: native, translation: translation, gender: gender));
+  _wordList.add(Word(native: native, translation: translation, gender: gender));
 }
 
 void add(
     {required String native,
     required String translation,
     required Gender gender}) {
-  wordsList
+  _wordList
       .add(Word(native: native, translation: [translation], gender: gender));
 }
 
-void genListForGerman() {
+List<Word> genListForGerman() {
+  _wordList = [];
+
   // S1-U1 - Order in a cafe
   add(native: "Kaffee", translation: "Coffee", gender: Gender.M);
   add(native: "Milch", translation: "Milk", gender: Gender.F);
@@ -58,4 +62,6 @@ void genListForGerman() {
   add(native: "Sehr", translation: "Very", gender: Gender.NA);
   add(native: "Klug", translation: "Smart", gender: Gender.NA);
   add(native: "Ist", translation: "Is", gender: Gender.NA);
+
+  return _wordList;
 }

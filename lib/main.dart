@@ -13,6 +13,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      title: "Duo Words",
       debugShowCheckedModeBanner: false,
       home: const App(),
       theme: ThemeData.dark(),

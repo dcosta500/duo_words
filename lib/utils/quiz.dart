@@ -49,6 +49,11 @@ class Quiz {
     _curQuestionOfStage++;
 
     int index = Random().nextInt(_curMaxIndex + 1);
-    return _questions[index];
+    Question q = _questions[index];
+
+    print("Index: $index");
+    print("Question prompt: ${q.prompt}");
+
+    return q;
   }
 }

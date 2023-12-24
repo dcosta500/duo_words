@@ -24,7 +24,9 @@ class MenuPage extends StatelessWidget {
           onPressed: () {
             navigateToQuizPage(context);
           },
-          child: Text("Start Quiz"),
+          child: Text(
+            "Start Quiz",
+          ),
         ),
       ),
     );

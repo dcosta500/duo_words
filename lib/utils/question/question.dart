@@ -1,4 +1,4 @@
-import 'package:duo_words/utils/word/word.dart';
+import '../word/gender.dart';
 
 class Question {
   late String _prompt;
@@ -10,7 +10,8 @@ class Question {
 
   Question({required String prompt, required List<String> answers}) {
     _prompt = prompt;
-    _answers = answers;
+    _answers = [];
+    _answerSet = Set();
 
     for (String answer in answers) {
       _answers.add(answer.toLowerCase());
@@ -21,7 +22,13 @@ class Question {
   }
 
   Question.gender({required String prompt, required Gender gender}) {
-    Question(prompt: prompt, answers: [gender.toString().toLowerCase()]);
+    _prompt = prompt;
+    _answers = [];
+    _answerSet = Set();
+
+    _answers.add(GenderClass.getString(gender).toLowerCase());
+    _answerSet.add(GenderClass.getString(gender).toLowerCase());
+
     _isGenderQuestion = true;
   }
 
