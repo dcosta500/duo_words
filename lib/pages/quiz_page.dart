@@ -12,6 +12,7 @@ import 'consts.dart';
 
 const String CORRECT_SOUND_PATH = '/sounds/correct_sound.mp3';
 const String INCORRECT_SOUND_PATH = '/sounds/incorrect_sound.mp3';
+const int STATUS_TEXT_DISPLAY_DURATION_IN_SECONDS = 5;
 
 class QuizPage extends StatelessWidget {
   const QuizPage({super.key});
@@ -35,7 +36,7 @@ class QuizContent extends StatefulWidget {
 }
 
 class _QuizContentState extends State<QuizContent> {
-  AudioPlayer audioPlayer = AudioPlayer();
+  final AudioPlayer audioPlayer = AudioPlayer();
 
   late GlobalKey<_StatusWidgetState> statusKey;
   late Question question;
@@ -47,7 +48,9 @@ class _QuizContentState extends State<QuizContent> {
     super.dispose();
   }
 
-  bool wasLastQuestionRight = false;
+  // If null then answer was correct, if not, answer was wrong and this contains
+  // the right answer
+  String? failedAnswer;
   bool showStatusText = false;
 
   _QuizContentState() {
@@ -67,8 +70,10 @@ class _QuizContentState extends State<QuizContent> {
 
   void playSound() async {
     try {
-      await audioPlayer.play(AssetSource(
-          wasLastQuestionRight ? CORRECT_SOUND_PATH : INCORRECT_SOUND_PATH));
+      await audioPlayer.play(
+          AssetSource(
+              failedAnswer == null ? CORRECT_SOUND_PATH : INCORRECT_SOUND_PATH),
+          mode: PlayerMode.lowLatency);
     } catch (e) {
       print("Error playing audio.");
     }
@@ -81,7 +86,7 @@ class _QuizContentState extends State<QuizContent> {
       question = quiz.getNextQuestion();
       showStatusText = true;
 
-      wasLastQuestionRight = q.isAnswerCorrect(answer);
+      failedAnswer = q.isAnswerCorrect(answer) ? null : q.getAnswers();
       playSound();
 
       statusKey = GlobalKey<_StatusWidgetState>();
@@ -118,8 +123,7 @@ class _QuizContentState extends State<QuizContent> {
                 ),
                 SizedBox(width: 300.0, child: Divider()),
                 showStatusText
-                    ? StatusWidget(
-                        key: statusKey, isRight: wasLastQuestionRight)
+                    ? StatusWidget(key: statusKey, rightAnswer: failedAnswer)
                     : Container(),
               ],
             ),
@@ -153,8 +157,8 @@ class _QuizContentState extends State<QuizContent> {
 }
 
 class StatusWidget extends StatefulWidget {
-  final bool isRight;
-  const StatusWidget({required this.isRight, super.key});
+  final String? rightAnswer;
+  const StatusWidget({required this.rightAnswer, super.key});
 
   @override
   State<StatusWidget> createState() => _StatusWidgetState();
@@ -166,7 +170,8 @@ class _StatusWidgetState extends State<StatusWidget> {
   @override
   void initState() {
     super.initState();
-    Future.delayed(Duration(seconds: 3), () {
+    Future.delayed(Duration(seconds: STATUS_TEXT_DISPLAY_DURATION_IN_SECONDS),
+        () {
       showStatusText = false;
       setState(() {});
     });
@@ -175,10 +180,25 @@ class _StatusWidgetState extends State<StatusWidget> {
   @override
   Widget build(BuildContext context) {
     if (showStatusText) {
-      if (widget.isRight) {
+      if (widget.rightAnswer == null) {
         return Text("Correct!", style: TextStyle(color: Colors.green));
       } else {
-        return Text("Wrong...", style: TextStyle(color: Colors.red));
+        return RichText(
+          text: TextSpan(
+            text: 'Wrong... The right answer was ',
+            style: TextStyle(color: Colors.red),
+            children: <TextSpan>[
+              TextSpan(
+                text: '${widget.rightAnswer}',
+                style: TextStyle(
+                  decoration: TextDecoration.underline,
+                ),
+              ),
+              // You can add more TextSpan children if needed
+              TextSpan(text: '.'),
+            ],
+          ),
+        );
       }
     } else {
       return Container();

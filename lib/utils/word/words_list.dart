@@ -43,11 +43,11 @@ List<Word> genListForGerman() {
   add(native: "Mutter", translation: "Mother", gender: Gender.F);
   add(native: "Vater", translation: "Father", gender: Gender.M);
   add(native: "Ein", translation: "A", gender: Gender.NA);
-  add(native: "Eine", translation: "A", gender: Gender.NA);
+  //add(native: "Eine", translation: "A", gender: Gender.NA);
   add(native: "Ich", translation: "I", gender: Gender.NA);
   add(native: "Bin", translation: "Am", gender: Gender.NA);
   add(native: "Mein", translation: "My", gender: Gender.NA);
-  add(native: "Meine", translation: "My", gender: Gender.NA);
+  //add(native: "Meine", translation: "My", gender: Gender.NA);
   addWithList(
       native: "Mann", translation: ["Man", "Husband"], gender: Gender.M);
   add(native: "Bruder", translation: "Brother", gender: Gender.M);

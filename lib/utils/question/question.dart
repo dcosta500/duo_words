@@ -51,4 +51,18 @@ class Question {
   bool isAnswerCorrect(String answer) {
     return _answerSet.contains(answer.toLowerCase());
   }
+
+  String getAnswers() {
+    String s = "";
+    for (String answer in _answers) {
+      s += "$answer/";
+    }
+
+    // Remove the last character before returning
+    if (s.isNotEmpty) {
+      s = s.substring(0, s.length - 1);
+    }
+
+    return s;
+  }
 }
