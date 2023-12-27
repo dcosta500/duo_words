@@ -18,7 +18,7 @@ class QuestionParser {
       // Translation to Native
       for (String translation in w.translation) {
         questions.add(Question(
-            prompt: translation, answers: [w.native], isPromptNative: false));
+            prompt: translation, answers: w.nativeList, isPromptNative: false));
       }
 
       // Gender Question

@@ -14,8 +14,13 @@ const String CORRECT_SOUND_PATH = '/sounds/correct_sound.mp3';
 const String INCORRECT_SOUND_PATH = '/sounds/incorrect_sound.mp3';
 const int STATUS_TEXT_DISPLAY_DURATION_IN_SECONDS = 5;
 
+late QuizConfiguration quizConfiguration;
+
 class QuizPage extends StatelessWidget {
-  const QuizPage({super.key});
+  final QuizConfiguration qc;
+  QuizPage({required this.qc, super.key}) {
+    quizConfiguration = qc;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,20 +47,29 @@ class _QuizContentState extends State<QuizContent> {
   late Question question;
   late Quiz quiz;
 
+  // If null then answer was correct, if not, answer was wrong and this contains
+  // the right answer
+  String? failedAnswer;
+  bool showStatusText = false;
+
+  // Stats
+  int totalAnsweredQuestions = 0;
+  int totalCorrectAnswers = 0;
+
   @override
   void dispose() {
     audioPlayer.dispose();
     super.dispose();
   }
 
-  // If null then answer was correct, if not, answer was wrong and this contains
-  // the right answer
-  String? failedAnswer;
-  bool showStatusText = false;
-
   _QuizContentState() {
     quiz = Quiz(
-        wordsList: genListForGerman(), quizConfiguration: QuizConfiguration());
+        wordsList: genListForGerman(), quizConfiguration: quizConfiguration);
+
+    print("Quiz config\n"
+        "\t-isAdaptative: ${quizConfiguration.isAdaptative}\n"
+        "\t-hasRandomOrder: ${quizConfiguration.hasRandomOrder}");
+
     question = quiz.getNextQuestion();
     statusKey = GlobalKey<_StatusWidgetState>();
   }
@@ -81,12 +95,16 @@ class _QuizContentState extends State<QuizContent> {
 
   void Function()? answerQuestion(Question q, String answer) {
     return () {
+      totalAnsweredQuestions += 1;
       print("Answering question '${q.prompt}' with answer $answer.");
 
       question = quiz.getNextQuestion();
       showStatusText = true;
 
-      failedAnswer = q.isAnswerCorrect(answer) ? null : q.getAnswers();
+      bool isRight = q.isAnswerCorrect(answer);
+
+      totalCorrectAnswers += isRight ? 1 : 0;
+      failedAnswer = isRight ? null : q.getAnswers();
       playSound();
 
       statusKey = GlobalKey<_StatusWidgetState>();
@@ -112,26 +130,44 @@ class _QuizContentState extends State<QuizContent> {
       children: [
         // Prompt
         Expanded(
-          flex: 1,
+          flex: 2,
           child: Center(
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(
-                  question.prompt,
-                  style: TextStyle(fontSize: 60.0 - question.prompt.length),
+                // Statistics
+                Expanded(
+                  flex: 1,
+                  child: StatisticsWidget(
+                    totalAnsweredQuestions: totalAnsweredQuestions,
+                    totalCorrectAnswers: totalCorrectAnswers,
+                  ),
                 ),
-                SizedBox(width: 300.0, child: Divider()),
-                showStatusText
-                    ? StatusWidget(key: statusKey, rightAnswer: failedAnswer)
-                    : Container(),
+                // Prompt
+                Expanded(
+                  flex: 3,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        question.prompt,
+                        style:
+                            TextStyle(fontSize: 60.0 - question.prompt.length),
+                      ),
+                      SizedBox(width: 300.0, child: Divider()),
+                      showStatusText
+                          ? StatusWidget(
+                              key: statusKey, rightAnswer: failedAnswer)
+                          : Container(),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
         ),
         // Answer
         Expanded(
-          flex: 2,
+          flex: 3,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
@@ -177,8 +213,7 @@ class _StatusWidgetState extends State<StatusWidget> {
     });
   }
 
-  @override
-  Widget build(BuildContext context) {
+  Widget getContent() {
     if (showStatusText) {
       if (widget.rightAnswer == null) {
         return Text("Correct!", style: TextStyle(color: Colors.green));
@@ -203,5 +238,28 @@ class _StatusWidgetState extends State<StatusWidget> {
     } else {
       return Container();
     }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(height: 20.0, child: getContent());
+  }
+}
+
+class StatisticsWidget extends StatelessWidget {
+  final int totalAnsweredQuestions;
+  final int totalCorrectAnswers;
+
+  const StatisticsWidget(
+      {required this.totalAnsweredQuestions,
+      required this.totalCorrectAnswers,
+      super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      "Total: $totalAnsweredQuestions, "
+      "Correct Rate: ${(totalAnsweredQuestions > 0 ? (totalCorrectAnswers / totalAnsweredQuestions) * 100 : 0).toInt()}%",
+    );
   }
 }

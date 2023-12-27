@@ -4,26 +4,36 @@ import 'gender.dart';
 
 List<Word> _wordList = [];
 
-void addWithList(
-    {required String native,
-    required List<String> translation,
-    required Gender gender}) {
-  _wordList.add(Word(native: native, translation: translation, gender: gender));
-}
-
 void add(
-    {required String native,
-    required String translation,
+    {required dynamic native,
+    required dynamic translation,
     required Gender gender}) {
-  _wordList
-      .add(Word(native: native, translation: [translation], gender: gender));
+  List<String> nativeList, translationList;
+  if (native is String) {
+    nativeList = [native];
+  } else if (native is List<String>) {
+    nativeList = native;
+  } else {
+    throw Exception("Error adding word to wordList");
+  }
+
+  if (translation is String) {
+    translationList = [translation];
+  } else if (translation is List<String>) {
+    translationList = translation;
+  } else {
+    throw Exception("Error adding word to wordList");
+  }
+
+  _wordList.add(
+      Word(native: nativeList, translation: translationList, gender: gender));
 }
 
 List<Word> genListForGerman() {
   _wordList = [];
 
   // S1-U1 - Order in a cafe
-  add(native: "Kaffee", translation: "Coffee", gender: Gender.M);
+  /*add(native: "Kaffee", translation: "Coffee", gender: Gender.M);
   add(native: "Milch", translation: "Milk", gender: Gender.F);
   add(native: "Hallo", translation: "Hello", gender: Gender.NA);
   add(native: "Bitte", translation: "Please", gender: Gender.NA);
@@ -37,17 +47,17 @@ List<Word> genListForGerman() {
   add(native: "Ja", translation: "Yes", gender: Gender.NA);
   add(native: "Nein", translation: "No", gender: Gender.NA);
   add(native: "Tschüss", translation: "Bye", gender: Gender.NA);
-  add(native: "Oder", translation: "Or", gender: Gender.NA);
+  add(native: "Oder", translation: "Or", gender: Gender.NA);*/
 
   // S1-U1 - Family
   add(native: "Mutter", translation: "Mother", gender: Gender.F);
   add(native: "Vater", translation: "Father", gender: Gender.M);
   add(native: "Ein", translation: "A", gender: Gender.NA);
-  //add(native: "Eine", translation: "A", gender: Gender.NA);
+  add(native: "Eine", translation: "A", gender: Gender.NA);
   add(native: "Ich", translation: "I", gender: Gender.NA);
   add(native: "Bin", translation: "Am", gender: Gender.NA);
-  add(native: "Mein", translation: "My", gender: Gender.NA);
-  //add(native: "Meine", translation: "My", gender: Gender.NA);
+  add(native: ["Mein", "Meine"], translation: "My", gender: Gender.NA);
+  /*//add(native: "Meine", translation: "My", gender: Gender.NA);
   addWithList(
       native: "Mann", translation: ["Man", "Husband"], gender: Gender.M);
   add(native: "Bruder", translation: "Brother", gender: Gender.M);
@@ -61,7 +71,7 @@ List<Word> genListForGerman() {
   add(native: "Nett", translation: "Nice", gender: Gender.NA);
   add(native: "Sehr", translation: "Very", gender: Gender.NA);
   add(native: "Klug", translation: "Smart", gender: Gender.NA);
-  add(native: "Ist", translation: "Is", gender: Gender.NA);
+  add(native: "Ist", translation: "Is", gender: Gender.NA);*/
 
   return _wordList;
 }
