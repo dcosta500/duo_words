@@ -9,7 +9,7 @@ App to help learning duolingo words.
   - Total Questions (Done)
 
 - Mode Buttons
-  - Normal Mode
-  - Adaptative Mode
+  - Normal Mode (Done)
+  - Adaptative Mode (Done)
   - Chapter Selection
-  - Random Order Toggle
+  - Random Order Toggle (Done)

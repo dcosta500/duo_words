@@ -1,9 +1,13 @@
 // ignore_for_file: prefer_const_constructors
 
 import 'package:duo_words/pages/quiz_page.dart';
+import 'package:duo_words/utils/question/question_generator.dart';
 import 'package:duo_words/utils/quiz_configuration.dart';
+import 'package:duo_words/utils/word/chapter.dart';
 import 'package:flutter/material.dart';
 
+import '../utils/question/question.dart';
+import '../utils/word/language.dart';
 import 'consts.dart';
 
 class MenuPage extends StatefulWidget {
@@ -14,23 +18,28 @@ class MenuPage extends StatefulWidget {
 }
 
 class _MenuPageState extends State<MenuPage> {
-  bool isAdaptative = false;
+  Language language = Language.GERMAN; // Default language
+  Chapter chapter = Chapter.S1_U1_FAMILY; // Default chapter
 
+  bool isAdaptative = false;
   bool hasRandomOrder = false;
 
-  void navigateToQuizPage(BuildContext context, QuizConfiguration qc) {
+  void navigateToQuizPage(
+      BuildContext context, List<Question> questionList, QuizConfiguration qc) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => QuizPage(qc: qc),
+        builder: (context) => QuizPage(questionList: questionList, qc: qc),
       ),
     );
   }
 
   Widget getButton(BuildContext context, String text, QuizConfiguration qc) {
     return FilledButton(
-      onPressed: () {
-        navigateToQuizPage(context, qc);
+      onPressed: () async {
+        List<Question> questionList = await QuestionParser.getFromDb(
+            language: language, chapter: chapter);
+        navigateToQuizPage(context, questionList, qc);
       },
       child: Text(text, style: TextStyle(fontSize: 20.0)),
     );

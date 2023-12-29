@@ -4,7 +4,6 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:duo_words/pages/widgets/answer.dart';
 import 'package:duo_words/utils/question/question.dart';
 import 'package:duo_words/utils/quiz_configuration.dart';
-import 'package:duo_words/utils/word/words_list.dart';
 import 'package:flutter/material.dart';
 
 import '../utils/quiz.dart';
@@ -14,27 +13,29 @@ const String CORRECT_SOUND_PATH = '/sounds/correct_sound.mp3';
 const String INCORRECT_SOUND_PATH = '/sounds/incorrect_sound.mp3';
 const int STATUS_TEXT_DISPLAY_DURATION_IN_SECONDS = 5;
 
-late QuizConfiguration quizConfiguration;
-
 class QuizPage extends StatelessWidget {
+  final List<Question> questionList;
   final QuizConfiguration qc;
-  QuizPage({required this.qc, super.key}) {
-    quizConfiguration = qc;
-  }
+  QuizPage({required this.questionList, required this.qc, super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: APP_BAR,
       body: Center(
-        child: QuizContent(),
+        child: QuizContent(
+          questionList: questionList,
+          qc: qc,
+        ),
       ),
     );
   }
 }
 
 class QuizContent extends StatefulWidget {
-  const QuizContent({super.key});
+  final List<Question> questionList;
+  final QuizConfiguration qc;
+  const QuizContent({required this.questionList, required this.qc, super.key});
 
   @override
   State<QuizContent> createState() => _QuizContentState();
@@ -42,6 +43,9 @@ class QuizContent extends StatefulWidget {
 
 class _QuizContentState extends State<QuizContent> {
   final AudioPlayer audioPlayer = AudioPlayer();
+
+  late List<Question> questionList;
+  late QuizConfiguration quizConfiguration;
 
   late GlobalKey<_StatusWidgetState> statusKey;
   late Question question;
@@ -57,14 +61,20 @@ class _QuizContentState extends State<QuizContent> {
   int totalCorrectAnswers = 0;
 
   @override
+  void initState() {
+    super.initState();
+    questionList = widget.questionList;
+    quizConfiguration = widget.qc;
+  }
+
+  @override
   void dispose() {
     audioPlayer.dispose();
     super.dispose();
   }
 
   _QuizContentState() {
-    quiz = Quiz(
-        wordsList: genListForGerman(), quizConfiguration: quizConfiguration);
+    quiz = Quiz(questions: questionList, quizConfiguration: quizConfiguration);
 
     print("Quiz config\n"
         "\t-isAdaptative: ${quizConfiguration.isAdaptative}\n"

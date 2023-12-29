@@ -1,9 +1,7 @@
 import 'dart:math';
 
 import 'package:duo_words/utils/question/question.dart';
-import 'package:duo_words/utils/question/question_generator.dart';
 import 'package:duo_words/utils/quiz_configuration.dart';
-import 'package:duo_words/utils/word/word.dart';
 
 class Quiz {
   // If quiz is adaptative, it will start with a 3 question active pool.
@@ -24,9 +22,9 @@ class Quiz {
   late int _curMaxIndex;
 
   Quiz(
-      {required List<Word> wordsList,
+      {required List<Question> questions,
       required QuizConfiguration quizConfiguration}) {
-    _questions = QuestionParser.genFromBuiltinWordList(wordsList);
+    _questions = questions;
     _qc = quizConfiguration;
     _curMaxIndex = _questions.length - 1;
 

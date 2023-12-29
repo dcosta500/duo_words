@@ -1,4 +1,6 @@
+import 'chapter.dart';
 import 'gender.dart';
+import 'language.dart';
 
 class Word {
   // List of native words. A word can have multiple forms
@@ -13,23 +15,44 @@ class Word {
   // Depending on the language, a word can have a gender.
   late Gender _gender;
 
+  late Language _language;
+
+  late Chapter _chapter;
+
   Word(
       {required List<String> native,
       required List<String> translation,
-      required Gender gender}) {
+      required Gender gender,
+      required Language language,
+      required Chapter chapter}) {
     _native = native;
     _translation = translation;
     _gender = gender;
+    _language = language;
+    _chapter = chapter;
   }
+
+  String getPromptNative() {
+    return _native.first;
+  }
+
+  Chapter get chapter => _chapter;
+
+  Language get language => _language;
+
+  Gender get gender => _gender;
 
   List<String> get translation => _translation;
 
-  List<String> get nativeList => _native;
+  List<String> get native => _native;
 
-  // Only the first will be used as a prompt, but the player can
-  // answer with any of the native (or any of the translations, depending
-  // on the question)
-  String get native => _native[0];
-
-  Gender get gender => _gender;
+  Map<String, dynamic> toMap() {
+    return {
+      'native': _native,
+      'translation': _translation,
+      'gender': _gender.toString().split('.').last,
+      'language': _language.toString().split('.').last,
+      'chapter': _chapter.toString().split('.').last,
+    };
+  }
 }

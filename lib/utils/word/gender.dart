@@ -5,7 +5,7 @@ enum Gender {
   NA, // Not Applicable
 }
 
-class GenderClass {
+abstract class GenderClass {
   static String getString(Gender gender) {
     switch (gender) {
       case Gender.M:
