@@ -1,3 +1,4 @@
+import '../../pages/consts.dart';
 import 'gender.dart';
 import 'language.dart';
 
@@ -49,6 +50,8 @@ class Word {
   factory Word.fromJson(Map<String, dynamic> json) {
     Language language = Language.values
         .firstWhere((e) => e.toString().split('.').last == json['language']);
+
+    printd(json['native']);
 
     return Word(
       native: List<String>.from(json['native']),

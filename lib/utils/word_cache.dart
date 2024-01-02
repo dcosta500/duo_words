@@ -78,7 +78,9 @@ Future<void> updateLocalCacheForLanguage(Language language) async {
       printd('Request failed with status: ${response.statusCode}.');
     }
 
-    List<dynamic> jsonData = jsonDecode(response.body);
+    String data = utf8.decode(response.bodyBytes);
+
+    List<dynamic> jsonData = jsonDecode(data);
 
     printd("Grouping...");
     Map<String, List<dynamic>> groupedByChapter = {};
