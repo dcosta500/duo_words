@@ -3,6 +3,8 @@ import 'dart:math';
 import 'package:duo_words/utils/question/question.dart';
 import 'package:duo_words/utils/quiz_configuration.dart';
 
+import '../pages/consts.dart';
+
 class Quiz {
   // If quiz is adaptative, it will start with a 3 question active pool.
   final int _INIT_MAX_INDEX_ADAP = 0;
@@ -62,7 +64,7 @@ class Quiz {
 
     int index = _getNextIndex();
 
-    print("Index: $index.");
+    printd("Index: $index.");
 
     return _questions[index];
   }

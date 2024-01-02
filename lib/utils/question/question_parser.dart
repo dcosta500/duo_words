@@ -1,21 +1,16 @@
 import 'package:duo_words/utils/question/question.dart';
-import 'package:duo_words/utils/word/chapter.dart';
 import 'package:duo_words/utils/word/language.dart';
 import 'package:duo_words/utils/word/word.dart';
 
 import '../word/gender.dart';
+import '../words_http.dart';
 
 class QuestionParser {
-  static Future<List<Word>> _getWordListFromDb(
-      Language language, Chapter chapter) async {
-    return [];
-  }
-
   static Future<List<Question>> getFromDb(
       {required Language language, required Chapter chapter}) async {
     List<Question> questions = [];
 
-    List<Word> wordsList = await _getWordListFromDb(language, chapter);
+    List<Word> wordsList = await getWordListFromDb(language, chapter);
 
     // Generation Logic (change if needed)
     for (Word w in wordsList) {

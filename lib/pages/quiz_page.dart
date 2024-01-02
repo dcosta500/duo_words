@@ -16,7 +16,7 @@ const int STATUS_TEXT_DISPLAY_DURATION_IN_SECONDS = 5;
 class QuizPage extends StatelessWidget {
   final List<Question> questionList;
   final QuizConfiguration qc;
-  QuizPage({required this.questionList, required this.qc, super.key});
+  const QuizPage({required this.questionList, required this.qc, super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -32,6 +32,7 @@ class QuizPage extends StatelessWidget {
   }
 }
 
+// Content
 class QuizContent extends StatefulWidget {
   final List<Question> questionList;
   final QuizConfiguration qc;
@@ -43,9 +44,6 @@ class QuizContent extends StatefulWidget {
 
 class _QuizContentState extends State<QuizContent> {
   final AudioPlayer audioPlayer = AudioPlayer();
-
-  late List<Question> questionList;
-  late QuizConfiguration quizConfiguration;
 
   late GlobalKey<_StatusWidgetState> statusKey;
   late Question question;
@@ -63,25 +61,18 @@ class _QuizContentState extends State<QuizContent> {
   @override
   void initState() {
     super.initState();
-    questionList = widget.questionList;
-    quizConfiguration = widget.qc;
+    quiz = Quiz(questions: widget.questionList, quizConfiguration: widget.qc);
+    printd("Quiz config\n"
+        "\t-isAdaptative: ${widget.qc.isAdaptative}\n"
+        "\t-hasRandomOrder: ${widget.qc.hasRandomOrder}");
+    question = quiz.getNextQuestion();
+    statusKey = GlobalKey<_StatusWidgetState>();
   }
 
   @override
   void dispose() {
     audioPlayer.dispose();
     super.dispose();
-  }
-
-  _QuizContentState() {
-    quiz = Quiz(questions: questionList, quizConfiguration: quizConfiguration);
-
-    print("Quiz config\n"
-        "\t-isAdaptative: ${quizConfiguration.isAdaptative}\n"
-        "\t-hasRandomOrder: ${quizConfiguration.hasRandomOrder}");
-
-    question = quiz.getNextQuestion();
-    statusKey = GlobalKey<_StatusWidgetState>();
   }
 
   String getHelperText() {
@@ -99,14 +90,14 @@ class _QuizContentState extends State<QuizContent> {
               failedAnswer == null ? CORRECT_SOUND_PATH : INCORRECT_SOUND_PATH),
           mode: PlayerMode.lowLatency);
     } catch (e) {
-      print("Error playing audio.");
+      printd("Error playing audio.");
     }
   }
 
   void Function()? answerQuestion(Question q, String answer) {
     return () {
       totalAnsweredQuestions += 1;
-      print("Answering question '${q.prompt}' with answer $answer.");
+      printd("Answering question '${q.prompt}' with answer $answer.");
 
       question = quiz.getNextQuestion();
       showStatusText = true;
@@ -202,6 +193,7 @@ class _QuizContentState extends State<QuizContent> {
   }
 }
 
+// Status
 class StatusWidget extends StatefulWidget {
   final String? rightAnswer;
   const StatusWidget({required this.rightAnswer, super.key});
@@ -256,6 +248,7 @@ class _StatusWidgetState extends State<StatusWidget> {
   }
 }
 
+// Statistics
 class StatisticsWidget extends StatelessWidget {
   final int totalAnsweredQuestions;
   final int totalCorrectAnswers;

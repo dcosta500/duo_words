@@ -1,4 +1,3 @@
-import 'chapter.dart';
 import 'gender.dart';
 import 'language.dart';
 
@@ -46,13 +45,28 @@ class Word {
 
   List<String> get native => _native;
 
+  // Factory constructor for creating a new instance from a map
+  factory Word.fromJson(Map<String, dynamic> json) {
+    Language language = Language.values
+        .firstWhere((e) => e.toString().split('.').last == json['language']);
+
+    return Word(
+      native: List<String>.from(json['native']),
+      translation: List<String>.from(json['translation']),
+      gender: Gender.values
+          .firstWhere((e) => e.toString().split('.').last == json['gender']),
+      language: language,
+      chapter: getChapter(language, json['chapter']),
+    );
+  }
+
   Map<String, dynamic> toMap() {
     return {
       'native': _native,
       'translation': _translation,
       'gender': _gender.toString().split('.').last,
       'language': _language.toString().split('.').last,
-      'chapter': _chapter.toString().split('.').last,
+      'chapter': _chapter,
     };
   }
 }
