@@ -3,7 +3,6 @@
 remote_root="/home/diogo/documents/projects/duo_words/web_app"
 image_name="duo-words-nginx"
 container_name="$image_name-container"
-log_path="$remote_root/logs"
 
 # Build web version
 flutter build web
@@ -22,5 +21,5 @@ docker rmi duo-words-nginx
 ssh diogo@pihome.local "
 cd $remote_root &&\
 docker build -t $image_name . &&\
-docker run -v $log_path:/var/log/nginx --name $container_name -p 8081:80 -d $image_name
+docker run --name $container_name -p 8081:80 -d $image_name
 "
