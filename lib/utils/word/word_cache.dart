@@ -3,9 +3,11 @@ import 'dart:io';
 
 import 'package:duo_words/pages/consts.dart';
 import 'package:duo_words/utils/word/language.dart';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/http.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 const String CACHE_FILE_NAME = "cached_db_responses";
 
@@ -20,19 +22,24 @@ Uri getUrlForDB(Language language, Chapter? chapter) {
   return Uri.parse(urlString);
 }
 
-Future<void> _printFile() async {
+// ===== READ =====
+Future<String> readFromLocalCache(String url) async {
+  return kIsWeb
+      ? await _readFromLocalCacheWeb(url)
+      : await _readFromLocalCacheMobile(url);
+}
+
+Future<String> _readFromLocalCacheWeb(String url) async {
   try {
-    final directory = await getApplicationDocumentsDirectory();
-    final file = File('${directory.path}/$CACHE_FILE_NAME');
-    if (await file.exists()) {
-      printd(await file.readAsString());
-    }
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getString(url)!;
   } catch (e) {
     printd('Error reading from local file: $e');
   }
+  return "";
 }
 
-Future<String> readFromLocalCache(String url) async {
+Future<String> _readFromLocalCacheMobile(String url) async {
   try {
     final directory = await getApplicationDocumentsDirectory();
     final file = File('${directory.path}/$CACHE_FILE_NAME');
@@ -47,7 +54,24 @@ Future<String> readFromLocalCache(String url) async {
   return "";
 }
 
+// ===== WRITE =====
 Future<void> writeToLocalCache(String url, dynamic data) async {
+  return kIsWeb
+      ? await _writeToLocalCacheWeb(url, data)
+      : await _writeToLocalCacheMobile(url, data);
+}
+
+Future<void> _writeToLocalCacheWeb(String url, dynamic data) async {
+  try {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    printd("Url (key): $url");
+    await prefs.setString(url, jsonEncode(data));
+  } catch (e) {
+    printd("Could not write to local cache: $e");
+  }
+}
+
+Future<void> _writeToLocalCacheMobile(String url, dynamic data) async {
   final directory = await getApplicationDocumentsDirectory();
   final file = File('${directory.path}/$CACHE_FILE_NAME');
 
@@ -66,6 +90,7 @@ Future<void> writeToLocalCache(String url, dynamic data) async {
   await file.writeAsString(jsonEncode(cacheMap));
 }
 
+// ===== UPDATE =====
 Future<void> updateLocalCacheForLanguage(Language language) async {
   try {
     var url = getUrlForDB(language, null);
@@ -98,12 +123,12 @@ Future<void> updateLocalCacheForLanguage(Language language) async {
 
     printd("Writing...");
     groupedByChapter.forEach((chapterString, words) async {
+      // word is already a json object
       Chapter chapter = getChapter(language, chapterString);
 
       String url = getUrlForDB(language, chapter).toString();
-      var data = groupedByChapter[chapterString];
 
-      await writeToLocalCache(url, data);
+      await writeToLocalCache(url, words);
     });
   } catch (e) {
     printd(e);

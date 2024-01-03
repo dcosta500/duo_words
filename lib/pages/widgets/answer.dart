@@ -17,25 +17,31 @@ class TextAnswer extends Answer {
   Widget build(BuildContext context) {
     TextEditingController textEditingController = TextEditingController();
 
+    void submitAnswer() {
+      String answer = textEditingController.text;
+
+      if (answer.isEmpty) {
+        return;
+      }
+
+      textEditingController.clear();
+      textEditingController.dispose();
+      myKey = GlobalKey();
+
+      answerQuestion(question, answer).call();
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        MyTextField(key: myKey, textEditingController: textEditingController),
+        MyTextField(
+          submit: submitAnswer,
+          textEditingController: textEditingController,
+          key: myKey,
+        ),
         SizedBox(height: 50.0),
         ElevatedButton(
-          onPressed: () {
-            String answer = textEditingController.text;
-
-            if (answer.isEmpty) {
-              return;
-            }
-
-            textEditingController.clear();
-            textEditingController.dispose();
-            myKey = GlobalKey();
-
-            answerQuestion(question, answer).call();
-          },
+          onPressed: submitAnswer,
           child: Text("Done"),
         )
       ],
@@ -79,7 +85,9 @@ abstract class Answer extends StatelessWidget {
 
 class MyTextField extends StatefulWidget {
   final TextEditingController textEditingController;
-  const MyTextField({super.key, required this.textEditingController});
+  final Function submit;
+  const MyTextField(
+      {required this.submit, required this.textEditingController, super.key});
 
   @override
   State<MyTextField> createState() => _MyTextFieldState();
@@ -102,6 +110,12 @@ class _MyTextFieldState extends State<MyTextField> {
   @override
   Widget build(BuildContext context) {
     return TextField(
+      /*onChanged: (String newValue) {
+        if (kIsWeb && newValue.contains(".")) {
+          controller.text = newValue.substring(0, newValue.length - 1);
+          widget.submit.call();
+        }
+      },*/
       controller: controller,
       decoration: InputDecoration(
         border: OutlineInputBorder(),

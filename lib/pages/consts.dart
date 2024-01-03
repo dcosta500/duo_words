@@ -1,8 +1,8 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-bool _debugMode = true;
 void printd(dynamic message) {
-  if (_debugMode) {
+  if (!kReleaseMode) {
     // ignore: avoid_print
     print(message);
   }
@@ -10,4 +10,5 @@ void printd(dynamic message) {
 
 final APP_BAR = AppBar(
   title: const Text("Duo Words"),
+  centerTitle: true,
 );

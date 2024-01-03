@@ -3,7 +3,7 @@
 import 'package:duo_words/pages/quiz_page.dart';
 import 'package:duo_words/utils/question/question_parser.dart';
 import 'package:duo_words/utils/quiz_configuration.dart';
-import 'package:duo_words/utils/word_cache.dart';
+import 'package:duo_words/utils/word/word_cache.dart';
 import 'package:flutter/material.dart';
 
 import '../utils/question/question.dart';

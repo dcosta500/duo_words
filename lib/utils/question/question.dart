@@ -1,6 +1,10 @@
+import 'package:duo_words/utils/word/word.dart';
+
 import '../word/gender.dart';
 
 class Question {
+  late Word _word;
+
   late String _prompt;
   late bool _isGenderQuestion;
   late bool _isPromptNative;
@@ -12,11 +16,13 @@ class Question {
   Question(
       {required String prompt,
       required List<String> answers,
-      required bool isPromptNative}) {
+      required bool isPromptNative,
+      required Word word}) {
     _prompt = prompt;
     _isPromptNative = isPromptNative;
     _answers = [];
     _answerSet = Set();
+    _word = word;
 
     for (String answer in answers) {
       _answers.add(answer.toLowerCase());
@@ -26,10 +32,12 @@ class Question {
     _isGenderQuestion = false;
   }
 
-  Question.gender({required String prompt, required Gender gender}) {
+  Question.gender(
+      {required String prompt, required Gender gender, required Word word}) {
     _prompt = prompt;
     _answers = [];
     _answerSet = Set();
+    _word = word;
 
     _answers.add(GenderClass.getString(gender).toLowerCase());
     _answerSet.add(GenderClass.getString(gender).toLowerCase());
@@ -47,6 +55,8 @@ class Question {
   bool get isGenderQuestion => _isGenderQuestion;
 
   bool get isPromptNative => _isPromptNative;
+
+  Word get word => _word;
 
   bool isAnswerCorrect(String answer) {
     return _answerSet.contains(answer.toLowerCase());

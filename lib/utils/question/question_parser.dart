@@ -3,7 +3,7 @@ import 'package:duo_words/utils/word/language.dart';
 import 'package:duo_words/utils/word/word.dart';
 
 import '../word/gender.dart';
-import '../words_http.dart';
+import '../word/words_http.dart';
 
 class QuestionParser {
   static Future<List<Question>> getFromDb(
@@ -18,18 +18,26 @@ class QuestionParser {
       questions.add(Question(
           prompt: w.getPromptNative(),
           answers: w.translation,
-          isPromptNative: true));
+          isPromptNative: true,
+          word: w));
 
       // Translation to Native
       for (String translation in w.translation) {
         questions.add(Question(
-            prompt: translation, answers: w.native, isPromptNative: false));
+          prompt: translation,
+          answers: w.native,
+          isPromptNative: false,
+          word: w,
+        ));
       }
 
       // Gender Question
       if (w.gender != Gender.NA) {
-        questions.add(
-            Question.gender(prompt: w.getPromptNative(), gender: w.gender));
+        questions.add(Question.gender(
+          prompt: w.getPromptNative(),
+          gender: w.gender,
+          word: w,
+        ));
       }
     }
 

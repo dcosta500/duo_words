@@ -4,6 +4,7 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:duo_words/pages/widgets/answer.dart';
 import 'package:duo_words/utils/question/question.dart';
 import 'package:duo_words/utils/quiz_configuration.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../utils/quiz.dart';
@@ -23,9 +24,12 @@ class QuizPage extends StatelessWidget {
     return Scaffold(
       appBar: APP_BAR,
       body: Center(
-        child: QuizContent(
-          questionList: questionList,
-          qc: qc,
+        child: FractionallySizedBox(
+          widthFactor: kIsWeb ? 0.3 : 1.0,
+          child: QuizContent(
+            questionList: questionList,
+            qc: qc,
+          ),
         ),
       ),
     );
@@ -79,7 +83,9 @@ class _QuizContentState extends State<QuizContent> {
     if (question.isGenderQuestion) {
       return "What's this word's gender?";
     } else {
-      return "Translate to ${question.isPromptNative ? "English" : "German"}";
+      String language = question.word.language.name[0].toUpperCase() +
+          question.word.language.name.substring(1);
+      return "Translate to ${question.isPromptNative ? "English" : language}";
     }
   }
 

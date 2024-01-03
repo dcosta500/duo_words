@@ -2,9 +2,9 @@ import 'dart:convert';
 
 import 'package:duo_words/utils/word/language.dart';
 import 'package:duo_words/utils/word/word.dart';
-import 'package:duo_words/utils/word_cache.dart';
+import 'package:duo_words/utils/word/word_cache.dart';
 
-import '../pages/consts.dart';
+import '../../pages/consts.dart';
 
 Future<List<Word>> getWordListFromDb(
     Language language, Chapter? chapter) async {

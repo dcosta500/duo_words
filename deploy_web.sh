@@ -1,10 +1,10 @@
 #!/bin/bash
-
 remote_root="/home/diogo/documents/projects/duo_words/web_app"
 image_name="duo-words-nginx"
 container_name="$image_name-container"
 
 # Build web version
+flutter clean
 flutter build web
 
 # Transfer static content (html, js, css, ...)
