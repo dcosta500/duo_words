@@ -147,6 +147,7 @@ class _QuizContentState extends State<QuizContent> {
                   child: StatisticsWidget(
                     totalAnsweredQuestions: totalAnsweredQuestions,
                     totalCorrectAnswers: totalCorrectAnswers,
+                    totalActivePool: quiz.getTotalActivePool(),
                   ),
                 ),
                 // Prompt
@@ -258,17 +259,20 @@ class _StatusWidgetState extends State<StatusWidget> {
 class StatisticsWidget extends StatelessWidget {
   final int totalAnsweredQuestions;
   final int totalCorrectAnswers;
+  final int totalActivePool;
 
   const StatisticsWidget(
       {required this.totalAnsweredQuestions,
       required this.totalCorrectAnswers,
+      required this.totalActivePool,
       super.key});
 
   @override
   Widget build(BuildContext context) {
     return Text(
       "Total: $totalAnsweredQuestions, "
-      "Correct Rate: ${(totalAnsweredQuestions > 0 ? (totalCorrectAnswers / totalAnsweredQuestions) * 100 : 0).toInt()}%",
+      "Correct Rate: ${(totalAnsweredQuestions > 0 ? (totalCorrectAnswers / totalAnsweredQuestions) * 100 : 0).toInt()}%\n"
+      "Active Pool: $totalActivePool",
     );
   }
 }

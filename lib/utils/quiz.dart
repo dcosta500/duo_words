@@ -3,17 +3,15 @@ import 'dart:math';
 import 'package:duo_words/utils/question/question.dart';
 import 'package:duo_words/utils/quiz_configuration.dart';
 
-import '../pages/consts.dart';
-
 class Quiz {
   // If quiz is adaptative, it will start with a 3 question active pool.
-  final int _INIT_MAX_INDEX_ADAP = 0;
+  final int _INIT_MAX_INDEX_ADAP = 2;
   // A word usually has 3 questions associated
   final int _INDEX_INCREMENT_STEP = 3;
 
   // Number of questions prompted before adding another question to the active
   // pool (_QUESTION_NUMBER_PER_STAGE > 0).
-  final int _NUMBER_OF_QUESTIONS_PER_STAGE = 2;
+  final int _NUMBER_OF_QUESTIONS_PER_STAGE = 5;
 
   int _curQuestionOfStage = 0;
 
@@ -47,7 +45,7 @@ class Quiz {
     if (_qc.hasRandomOrder) {
       return Random().nextInt(_curMaxIndex + 1);
     } else {
-      _curIndex = _curMaxIndex == 0 ? 0 : (_curIndex + 1) % _curMaxIndex;
+      _curIndex = _curMaxIndex == 0 ? 0 : (_curIndex + 1) % (_curMaxIndex + 1);
       return _curIndex;
     }
   }
@@ -62,10 +60,10 @@ class Quiz {
     }
     _curQuestionOfStage++;
 
-    int index = _getNextIndex();
+    return _questions[_getNextIndex()];
+  }
 
-    printd("Index: $index.");
-
-    return _questions[index];
+  int getTotalActivePool() {
+    return _curMaxIndex + 1;
   }
 }
