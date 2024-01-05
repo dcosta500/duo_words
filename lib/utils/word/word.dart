@@ -51,9 +51,7 @@ class Word {
     Language language = Language.values
         .firstWhere((e) => e.toString().split('.').last == json['language']);
 
-    printd(json['native']);
-
-    return Word(
+    Word word = Word(
       native: List<String>.from(json['native']),
       translation: List<String>.from(json['translation']),
       gender: Gender.values
@@ -61,15 +59,25 @@ class Word {
       language: language,
       chapter: getChapter(language, json['chapter']),
     );
+
+    printd("Word created: $word");
+
+    return word;
   }
 
-  Map<String, dynamic> toMap() {
+  // Convert Word instance to a Map
+  Map<String, dynamic> toJson() {
     return {
       'native': _native,
       'translation': _translation,
       'gender': _gender.toString().split('.').last,
       'language': _language.toString().split('.').last,
-      'chapter': _chapter,
+      'chapter': _chapter.name, // Ensure this is a string
     };
+  }
+
+  @override
+  String toString() {
+    return "Word -> native: $_native; translation: $translation; gender: ${gender.name}; language: ${language.name}; chapter: ${chapter.name}";
   }
 }

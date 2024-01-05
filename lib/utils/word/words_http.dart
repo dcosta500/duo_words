@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:duo_words/utils/word/language.dart';
 import 'package:duo_words/utils/word/word.dart';
 import 'package:duo_words/utils/word/word_cache.dart';
@@ -9,10 +7,9 @@ import '../../pages/consts.dart';
 Future<List<Word>> getWordListFromDb(
     Language language, Chapter? chapter) async {
   try {
-    String data =
-        await readFromLocalCache(getUrlForDB(language, chapter).toString());
+    return await readFromLocalCache(getUrlForDB(language, chapter).toString());
 
-    if (data.isEmpty) {
+    /*if (data.isEmpty) {
       throw Exception("Could not read from cache.");
     }
 
@@ -23,7 +20,7 @@ Future<List<Word>> getWordListFromDb(
       return Word.fromJson(jsonItem);
     }).toList();
 
-    return words;
+    return words;*/
   } catch (e) {
     printd(e);
     printd("Could not get word list from DB.");

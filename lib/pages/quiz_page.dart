@@ -211,15 +211,23 @@ class StatusWidget extends StatefulWidget {
 
 class _StatusWidgetState extends State<StatusWidget> {
   bool showStatusText = true;
+  late Future<void> disableStatusText;
 
   @override
   void initState() {
     super.initState();
-    Future.delayed(Duration(seconds: STATUS_TEXT_DISPLAY_DURATION_IN_SECONDS),
-        () {
-      showStatusText = false;
-      setState(() {});
+    disableStatusText = Future.delayed(
+        Duration(seconds: STATUS_TEXT_DISPLAY_DURATION_IN_SECONDS), () {
+      setState(() {
+        showStatusText = false;
+      });
     });
+  }
+
+  @override
+  void dispose() {
+    disableStatusText.ignore();
+    super.dispose();
   }
 
   Widget getContent() {
