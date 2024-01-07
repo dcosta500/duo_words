@@ -1,5 +1,7 @@
 // ignore_for_file: prefer_const_constructors
 
+import 'package:duo_words/pages/consts.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../utils/question/question.dart';
@@ -95,28 +97,37 @@ class MyTextField extends StatefulWidget {
 
 class _MyTextFieldState extends State<MyTextField> {
   late TextEditingController controller;
+  late FocusNode focusNode; // FocusNode declaration
 
   @override
   void initState() {
     super.initState();
     controller = widget.textEditingController;
+    focusNode = FocusNode(); // Initialize the focus node
+
+    // Request focus when the widget is built
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      focusNode.requestFocus();
+    });
   }
 
   @override
   void dispose() {
+    focusNode.dispose(); // Dispose of the focus node
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return TextField(
-      /*onChanged: (String newValue) {
-        if (kIsWeb && newValue.contains(".")) {
-          controller.text = newValue.substring(0, newValue.length - 1);
+      onSubmitted: (String value) {
+        if (kIsWeb || kIsDesktop) {
+          controller.text = value;
           widget.submit.call();
         }
-      },*/
+      },
       controller: controller,
+      focusNode: focusNode, // Attach the focus node
       decoration: InputDecoration(
         border: OutlineInputBorder(),
         labelText: 'Translation',

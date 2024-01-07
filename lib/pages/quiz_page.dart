@@ -25,7 +25,7 @@ class QuizPage extends StatelessWidget {
       appBar: APP_BAR,
       body: Center(
         child: FractionallySizedBox(
-          widthFactor: kIsWeb ? 0.3 : 1.0,
+          widthFactor: kIsWeb ? 0.5 : 1.0,
           child: QuizContent(
             questionList: questionList,
             qc: qc,
