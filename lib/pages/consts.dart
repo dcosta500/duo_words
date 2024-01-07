@@ -22,7 +22,10 @@ void printd(dynamic message) {
   }
 }
 
-final APP_BAR = AppBar(
-  title: const Text("Duo Words"),
-  centerTitle: true,
-);
+AppBar getAppBar({required List<Widget> actions}) {
+  return AppBar(
+    title: const Text("Duo Words"),
+    centerTitle: true,
+    actions: actions,
+  );
+}

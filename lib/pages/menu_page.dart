@@ -95,7 +95,7 @@ class _MenuPageState extends State<MenuPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: APP_BAR,
+      appBar: getAppBar(actions: []),
       body: Center(
         child: isLoading
             ? CircularProgressIndicator() // Show loading indicator when isLoading is true

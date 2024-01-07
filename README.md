@@ -4,12 +4,5 @@ App to help learning duolingo words.
 
 ## TODO
 
-- Stats (Done)
-  - Correct Rate (Done)
-  - Total Questions (Done)
-
-- Mode Buttons
-  - Normal Mode (Done)
-  - Adaptative Mode (Done)
-  - Chapter Selection
-  - Random Order Toggle (Done)
+- Correct/Incorrect sound does not play again if it is still playing
+- Word list should display which words are in the active pool

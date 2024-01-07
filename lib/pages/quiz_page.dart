@@ -16,12 +16,50 @@ const int STATUS_TEXT_DISPLAY_DURATION_IN_SECONDS = 5;
 
 class QuizPage extends StatelessWidget {
   final QuizConfiguration qc;
-  const QuizPage({required this.qc, super.key});
+  QuizPage({required this.qc, super.key});
+
+  RichText createWordList() {
+    return RichText(
+      text: TextSpan(
+        style: TextStyle(color: Colors.white),
+        children: qc.wordList
+            .map(
+              (word) => TextSpan(
+                text: "- ${word.getPromptNative()}\n",
+              ),
+            )
+            .toList(),
+      ),
+    );
+  }
+
+  void showWordListModal(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Word List'),
+          content: createWordList(),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Close'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: APP_BAR,
+      appBar: getAppBar(actions: [
+        IconButton(
+          icon: const Icon(Icons.list),
+          onPressed: () => showWordListModal(context),
+        )
+      ]),
       body: Center(
         child: FractionallySizedBox(
           widthFactor: kIsWeb ? 0.5 : 1.0,
