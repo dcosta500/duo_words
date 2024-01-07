@@ -68,7 +68,9 @@ class _QuizContentState extends State<QuizContent> {
     quiz = Quiz(questions: widget.questionList, quizConfiguration: widget.qc);
     printd("Quiz config\n"
         "\t-isAdaptative: ${widget.qc.isAdaptative}\n"
-        "\t-hasRandomOrder: ${widget.qc.hasRandomOrder}");
+        "\t-hasRandomOrder: ${widget.qc.hasRandomOrder}\n"
+        "\t-onlyGender: ${widget.qc.doOnlyGenderedQuestions}\n"
+        "\t-onlyWritten: ${widget.qc.doOnlyWrittenQuestions}");
     question = quiz.getNextQuestion();
     statusKey = GlobalKey<_StatusWidgetState>();
   }

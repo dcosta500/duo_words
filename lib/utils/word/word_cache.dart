@@ -33,9 +33,16 @@ Future<List<Word>> readFromLocalCache(String url) async {
 Future<List<Word>> _readFromLocalCacheWeb(String url) async {
   try {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    return json.decode(prefs.getString(url)!);
+    String jsonString = prefs.getString(url)!;
+
+    List jsonList = json.decode(jsonString);
+
+    List<Word> words = jsonList.map((e) => Word.fromJson(e)).toList();
+
+    printd(words);
+    return words;
   } catch (e) {
-    printd('Error reading from local file: $e');
+    printd('Error reading from local web file: $e');
   }
   return [];
 }
@@ -48,13 +55,9 @@ Future<List<Word>> _readFromLocalCacheMobile(String url) async {
       final jsonString = await file.readAsString();
       final cacheList = json.decode(jsonString) as Map<String, dynamic>;
 
-      printd("a");
-
       List<Word> words = (cacheList[url] as List)
           .map((stringItem) => Word.fromJson(stringItem))
           .toList();
-
-      printd("b");
 
       return words;
     }
@@ -74,7 +77,7 @@ Future<void> writeToLocalCache(String url, List<Word> words) async {
 
 Future<void> _writeToLocalCacheWeb(String url, List<Word> words) async {
   try {
-    printd("Write-Web");
+    //printd("Write-Web");
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setString(url, json.encode(words));
   } catch (e) {

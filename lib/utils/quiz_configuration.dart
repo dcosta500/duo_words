@@ -1,6 +1,24 @@
 class QuizConfiguration {
-  bool isAdaptative;
-  bool hasRandomOrder;
+  final bool isAdaptative;
+  final bool hasRandomOrder;
 
-  QuizConfiguration({this.isAdaptative = false, this.hasRandomOrder = false});
+  final bool doOnlyGenderedQuestions;
+  final bool doOnlyWrittenQuestions;
+
+  QuizConfiguration({
+    this.isAdaptative = false,
+    this.hasRandomOrder = false,
+    this.doOnlyGenderedQuestions = false,
+    this.doOnlyWrittenQuestions = false,
+  });
+
+  bool isConfigurationCorrect() {
+    bool isCorrect = true;
+
+    if (doOnlyGenderedQuestions && doOnlyWrittenQuestions) {
+      isCorrect = false;
+    }
+
+    return isCorrect;
+  }
 }

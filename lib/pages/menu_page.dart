@@ -24,6 +24,9 @@ class _MenuPageState extends State<MenuPage> {
 
   bool isAdaptative = false;
   bool hasRandomOrder = false;
+  bool doOnlyGenderedQuestions = false;
+  bool doOnlyWrittenQuestions = false;
+
   bool isLoading = false;
 
   _MenuPageState() {
@@ -35,18 +38,20 @@ class _MenuPageState extends State<MenuPage> {
   void navigateToQuizPage(
       BuildContext context, List<Question> questionList, QuizConfiguration qc) {
     if (questionList.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('No questions available.'),
-          duration: Duration(seconds: 2),
-        ),
-      );
+      showSnackbar(context, "No questions available.");
+      return;
+    }
+    if (!qc.isConfigurationCorrect()) {
+      showSnackbar(context, "Quiz configuration is invalid.");
       return;
     }
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => QuizPage(questionList: questionList, qc: qc),
+        builder: (context) => QuizPage(
+          questionList: questionList,
+          qc: qc,
+        ),
       ),
     );
   }
@@ -58,7 +63,10 @@ class _MenuPageState extends State<MenuPage> {
           isLoading = true;
         });
         List<Question> questionList = await QuestionParser.getFromDb(
-            language: language, chapter: chapter);
+          language: language,
+          chapter: chapter,
+          quizConfiguration: qc,
+        );
         setState(() {
           isLoading = false;
         });
@@ -106,6 +114,8 @@ class _MenuPageState extends State<MenuPage> {
               QuizConfiguration(
                 isAdaptative: isAdaptative,
                 hasRandomOrder: hasRandomOrder,
+                doOnlyGenderedQuestions: doOnlyGenderedQuestions,
+                doOnlyWrittenQuestions: doOnlyWrittenQuestions,
               ),
             )
           ],
@@ -132,6 +142,32 @@ class _MenuPageState extends State<MenuPage> {
               (bool value) {
                 setState(() {
                   hasRandomOrder = value;
+                });
+              },
+            ),
+            getSwitch(
+              context,
+              "Only Gender Questions",
+              doOnlyGenderedQuestions,
+              (bool value) {
+                setState(() {
+                  doOnlyGenderedQuestions = value;
+                  if (doOnlyGenderedQuestions) {
+                    doOnlyWrittenQuestions = false;
+                  }
+                });
+              },
+            ),
+            getSwitch(
+              context,
+              "Only Written Questions",
+              doOnlyWrittenQuestions,
+              (bool value) {
+                setState(() {
+                  doOnlyWrittenQuestions = value;
+                  if (doOnlyWrittenQuestions) {
+                    doOnlyGenderedQuestions = false;
+                  }
                 });
               },
             ),

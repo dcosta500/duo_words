@@ -1,4 +1,3 @@
-import '../../pages/consts.dart';
 import 'gender.dart';
 import 'language.dart';
 
@@ -59,8 +58,6 @@ class Word {
       language: language,
       chapter: getChapter(language, json['chapter']),
     );
-
-    printd("Word created: $word");
 
     return word;
   }
