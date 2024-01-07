@@ -15,9 +15,8 @@ const String INCORRECT_SOUND_PATH = '/sounds/incorrect_sound.mp3';
 const int STATUS_TEXT_DISPLAY_DURATION_IN_SECONDS = 5;
 
 class QuizPage extends StatelessWidget {
-  final List<Question> questionList;
   final QuizConfiguration qc;
-  const QuizPage({required this.questionList, required this.qc, super.key});
+  const QuizPage({required this.qc, super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +26,6 @@ class QuizPage extends StatelessWidget {
         child: FractionallySizedBox(
           widthFactor: kIsWeb ? 0.5 : 1.0,
           child: QuizContent(
-            questionList: questionList,
             qc: qc,
           ),
         ),
@@ -38,9 +36,8 @@ class QuizPage extends StatelessWidget {
 
 // Content
 class QuizContent extends StatefulWidget {
-  final List<Question> questionList;
   final QuizConfiguration qc;
-  const QuizContent({required this.questionList, required this.qc, super.key});
+  const QuizContent({required this.qc, super.key});
 
   @override
   State<QuizContent> createState() => _QuizContentState();
@@ -65,7 +62,7 @@ class _QuizContentState extends State<QuizContent> {
   @override
   void initState() {
     super.initState();
-    quiz = Quiz(questions: widget.questionList, quizConfiguration: widget.qc);
+    quiz = Quiz(quizConfiguration: widget.qc);
     printd("Quiz config\n"
         "\t-isAdaptative: ${widget.qc.isAdaptative}\n"
         "\t-hasRandomOrder: ${widget.qc.hasRandomOrder}\n"

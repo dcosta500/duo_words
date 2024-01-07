@@ -37,9 +37,9 @@ Future<List<Word>> _readFromLocalCacheWeb(String url) async {
 
     List jsonList = json.decode(jsonString);
 
-    List<Word> words = jsonList.map((e) => Word.fromJson(e)).toList();
+    List<Word> words =
+        List.unmodifiable(jsonList.map((e) => Word.fromJson(e)).toList());
 
-    printd(words);
     return words;
   } catch (e) {
     printd('Error reading from local web file: $e');
@@ -55,9 +55,11 @@ Future<List<Word>> _readFromLocalCacheMobile(String url) async {
       final jsonString = await file.readAsString();
       final cacheList = json.decode(jsonString) as Map<String, dynamic>;
 
-      List<Word> words = (cacheList[url] as List)
-          .map((stringItem) => Word.fromJson(stringItem))
-          .toList();
+      List<Word> words = List.unmodifiable(
+        (cacheList[url] as List)
+            .map((stringItem) => Word.fromJson(stringItem))
+            .toList(),
+      );
 
       return words;
     }

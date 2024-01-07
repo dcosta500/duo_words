@@ -1,13 +1,13 @@
 // ignore_for_file: prefer_const_constructors
 
 import 'package:duo_words/pages/quiz_page.dart';
-import 'package:duo_words/utils/question/question_parser.dart';
 import 'package:duo_words/utils/quiz_configuration.dart';
 import 'package:duo_words/utils/word/word_cache.dart';
+import 'package:duo_words/utils/word/words_http.dart';
 import 'package:flutter/material.dart';
 
-import '../utils/question/question.dart';
 import '../utils/word/language.dart';
+import '../utils/word/word.dart';
 import 'consts.dart';
 
 class MenuPage extends StatefulWidget {
@@ -35,42 +35,46 @@ class _MenuPageState extends State<MenuPage> {
     chapter = chapterList.first;
   }
 
-  void navigateToQuizPage(
-      BuildContext context, List<Question> questionList, QuizConfiguration qc) {
-    if (questionList.isEmpty) {
-      showSnackbar(context, "No questions available.");
-      return;
-    }
+  void navigateToQuizPage(BuildContext context, QuizConfiguration qc) {
     if (!qc.isConfigurationCorrect()) {
       showSnackbar(context, "Quiz configuration is invalid.");
       return;
     }
+    if (qc.wordList.isEmpty) {
+      showSnackbar(context, "No questions available.");
+      return;
+    }
+
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => QuizPage(
-          questionList: questionList,
           qc: qc,
         ),
       ),
     );
   }
 
-  Widget getButton(BuildContext context, String text, QuizConfiguration qc) {
+  Widget getButton(BuildContext context, String text) {
     return FilledButton(
       onPressed: () async {
         setState(() {
           isLoading = true;
         });
-        List<Question> questionList = await QuestionParser.getFromDb(
+        List<Word> wordList = await getWordListFromDb(language, chapter);
+        QuizConfiguration quizConfiguration = QuizConfiguration(
           language: language,
           chapter: chapter,
-          quizConfiguration: qc,
+          wordList: wordList,
+          isAdaptative: isAdaptative,
+          hasRandomOrder: hasRandomOrder,
+          doOnlyGenderedQuestions: doOnlyGenderedQuestions,
+          doOnlyWrittenQuestions: doOnlyWrittenQuestions,
         );
         setState(() {
           isLoading = false;
         });
-        navigateToQuizPage(context, questionList, qc);
+        navigateToQuizPage(context, quizConfiguration);
       },
       child: Text(text, style: TextStyle(fontSize: 20.0)),
     );
@@ -107,18 +111,7 @@ class _MenuPageState extends State<MenuPage> {
         // Buttons
         Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            getButton(
-              context,
-              "Start Quiz",
-              QuizConfiguration(
-                isAdaptative: isAdaptative,
-                hasRandomOrder: hasRandomOrder,
-                doOnlyGenderedQuestions: doOnlyGenderedQuestions,
-                doOnlyWrittenQuestions: doOnlyWrittenQuestions,
-              ),
-            )
-          ],
+          children: [getButton(context, "Start Quiz")],
         ),
         SizedBox(height: 50.0),
         // Switches

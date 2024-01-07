@@ -1,29 +1,27 @@
 import 'package:duo_words/pages/consts.dart';
 import 'package:duo_words/utils/question/question.dart';
 import 'package:duo_words/utils/quiz_configuration.dart';
-import 'package:duo_words/utils/word/language.dart';
 import 'package:duo_words/utils/word/word.dart';
 
 import '../word/gender.dart';
-import '../word/words_http.dart';
 
 class QuestionParser {
-  static Future<List<Question>> getFromDb({
-    required Language language,
-    required Chapter chapter,
+  static List<Question> createFromConfig({
     required QuizConfiguration quizConfiguration,
-  }) async {
-    List<Question> questions = [];
-
-    List<Word> wordsList = await getWordListFromDb(language, chapter);
-
+  }) {
     // unpack
     if (!quizConfiguration.isConfigurationCorrect()) {
       printd("Question-Parser: Quiz configuration is not correct.");
       return [];
     }
+
+    List<Word> wordsList = quizConfiguration.wordList;
+
     bool onlyGender = quizConfiguration.doOnlyGenderedQuestions;
     bool onlyWritten = quizConfiguration.doOnlyWrittenQuestions;
+
+    // Inits
+    List<Question> questions = [];
 
     // Generation Logic (change if needed)
     for (Word word in wordsList) {
