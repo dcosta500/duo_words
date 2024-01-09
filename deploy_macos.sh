@@ -12,7 +12,9 @@ fi
 sudo rm -rf "/Applications/duo_words.app"
 
 # Build
-flutter build macos --release
+flutter clean
+flutter build ios
+flutter build macos
 
 # Install
-sudo mv $BUILD_PATH "/Applications/"
+sudo cp $BUILD_PATH "/Applications/"

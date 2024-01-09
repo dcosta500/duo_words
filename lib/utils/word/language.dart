@@ -63,11 +63,11 @@ List<Chapter> getChapters(Language language) {
 // Define a function or a getter to provide the chapters for each language
 List<LanguageChapters> get languageChapters => [
       LanguageChapters(Language.german, [
-        Chapter("s1-u1-order_in_a_cafe"),
-        Chapter("s1-u1-family"),
+        Chapter("s1-u1-basics_1"),
+        Chapter("s1-u1-family_1"),
+        Chapter("s1-u2-basics_2"),
+        //Chapter("s1-u2-greetings_1"),
         // Add more chapters as needed
       ]),
-      LanguageChapters(Language.dutch, [
-        // Add more chapters as needed
-      ]),
+      LanguageChapters(Language.german, []),
     ];
