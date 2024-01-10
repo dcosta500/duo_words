@@ -1,6 +1,7 @@
 // ignore_for_file: prefer_const_constructors
 
 import 'package:duo_words/pages/quiz_page.dart';
+import 'package:duo_words/utils/quiz.dart';
 import 'package:duo_words/utils/quiz_configuration.dart';
 import 'package:duo_words/utils/word/word_cache.dart';
 import 'package:duo_words/utils/word/words_http.dart';
@@ -35,60 +36,46 @@ class _MenuPageState extends State<MenuPage> {
     chapter = chapterList.first;
   }
 
-  void navigateToQuizPage(BuildContext context, QuizConfiguration qc) {
-    if (!qc.isConfigurationCorrect()) {
+  void startButtonFunction() async {
+    // Turn loading screen on
+    setState(() {
+      isLoading = true;
+    });
+
+    // Process
+    List<Word> wordList = await getWordListFromDb(language, chapter);
+    QuizConfiguration quizConfiguration = QuizConfiguration(
+      language: language,
+      chapter: chapter,
+      wordList: wordList,
+      isAdaptative: isAdaptative,
+      hasRandomOrder: hasRandomOrder,
+      doOnlyGenderedQuestions: doOnlyGenderedQuestions,
+      doOnlyWrittenQuestions: doOnlyWrittenQuestions,
+    );
+
+    if (!quizConfiguration.isConfigurationCorrect()) {
       showSnackbar(context, "Quiz configuration is invalid.");
       return;
     }
-    if (qc.wordList.isEmpty) {
+    if (quizConfiguration.wordList.isEmpty) {
       showSnackbar(context, "No questions available.");
       return;
     }
 
+    Quiz quiz = Quiz(quizConfiguration: quizConfiguration);
+
+    // Turn loading screen off
+    setState(() {
+      isLoading = false;
+    });
+
+    // Navigate
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => QuizPage(
-          qc: qc,
-        ),
+        builder: (context) => QuizPage(quiz: quiz),
       ),
-    );
-  }
-
-  Widget getButton(BuildContext context, String text) {
-    return FilledButton(
-      onPressed: () async {
-        setState(() {
-          isLoading = true;
-        });
-        List<Word> wordList = await getWordListFromDb(language, chapter);
-        QuizConfiguration quizConfiguration = QuizConfiguration(
-          language: language,
-          chapter: chapter,
-          wordList: wordList,
-          isAdaptative: isAdaptative,
-          hasRandomOrder: hasRandomOrder,
-          doOnlyGenderedQuestions: doOnlyGenderedQuestions,
-          doOnlyWrittenQuestions: doOnlyWrittenQuestions,
-        );
-        setState(() {
-          isLoading = false;
-        });
-        navigateToQuizPage(context, quizConfiguration);
-      },
-      child: Text(text, style: TextStyle(fontSize: 20.0)),
-    );
-  }
-
-  Widget getSwitch(BuildContext context, String label, bool initialValue,
-      void Function(bool) function) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text(label, style: TextStyle(fontSize: 20.0)),
-        SizedBox(width: 10.0),
-        Switch(value: initialValue, onChanged: function),
-      ],
     );
   }
 
@@ -109,40 +96,34 @@ class _MenuPageState extends State<MenuPage> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         // Buttons
-        Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [getButton(context, "Start Quiz")],
-        ),
+        StartButton(onPressed: startButtonFunction),
         SizedBox(height: 50.0),
         // Switches
         Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            getSwitch(
-              context,
-              "Adaptative",
-              isAdaptative,
-              (bool value) {
+            MenuSwitch(
+              label: "Adaptative",
+              value: isAdaptative,
+              function: (bool value) {
                 setState(() {
                   isAdaptative = value;
                 });
               },
             ),
-            getSwitch(
-              context,
-              "Random Order",
-              hasRandomOrder,
-              (bool value) {
+            MenuSwitch(
+              label: "Random Order",
+              value: hasRandomOrder,
+              function: (bool value) {
                 setState(() {
                   hasRandomOrder = value;
                 });
               },
             ),
-            getSwitch(
-              context,
-              "Only Gender Questions",
-              doOnlyGenderedQuestions,
-              (bool value) {
+            MenuSwitch(
+              label: "Only Gender Questions",
+              value: doOnlyGenderedQuestions,
+              function: (bool value) {
                 setState(() {
                   doOnlyGenderedQuestions = value;
                   if (doOnlyGenderedQuestions) {
@@ -151,11 +132,10 @@ class _MenuPageState extends State<MenuPage> {
                 });
               },
             ),
-            getSwitch(
-              context,
-              "Only Written Questions",
-              doOnlyWrittenQuestions,
-              (bool value) {
+            MenuSwitch(
+              label: "Only Written Questions",
+              value: doOnlyWrittenQuestions,
+              function: (bool value) {
                 setState(() {
                   doOnlyWrittenQuestions = value;
                   if (doOnlyWrittenQuestions) {
@@ -211,28 +191,71 @@ class _MenuPageState extends State<MenuPage> {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text('Update ${language.name} course'),
+            Text('Download/Update ${language.name} course.'),
             IconButton(
               icon: Icon(Icons.update, size: 30),
               onPressed: () async {
                 setState(() {
                   isLoading = true;
                 });
-                await updateLocalCacheForLanguage(language);
+                try {
+                  await updateLocalCacheForLanguage(language);
+                } catch (e) {
+                  showSnackbar(context, "Could not update cache.");
+                  setState(() {
+                    isLoading = false;
+                  });
+                  return;
+                }
                 setState(() {
                   isLoading = false;
                 });
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text("Cache updated."),
-                    duration: Duration(seconds: 2),
-                  ),
-                );
+                showSnackbar(context, "Cache updated successfuly.");
               },
               tooltip: 'Fetch Course Updates',
             ),
           ],
         ),
+      ],
+    );
+  }
+}
+
+class StartButton extends StatelessWidget {
+  final void Function() onPressed;
+  const StartButton({required this.onPressed, super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return FilledButton(
+      onPressed: onPressed,
+      child: Text(
+        "Start Button",
+        style: TextStyle(fontSize: 20.0),
+      ),
+    );
+  }
+}
+
+class MenuSwitch extends StatelessWidget {
+  final String label;
+  final bool value;
+  final void Function(bool) function;
+
+  const MenuSwitch(
+      {super.key,
+      required this.label,
+      required this.value,
+      required this.function});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(label, style: TextStyle(fontSize: 20.0)),
+        SizedBox(width: 10.0),
+        Switch(value: value, onChanged: function),
       ],
     );
   }

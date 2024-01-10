@@ -4,6 +4,7 @@ import 'package:duo_words/utils/question/question.dart';
 import 'package:duo_words/utils/question/question_parser.dart';
 import 'package:duo_words/utils/quiz_configuration.dart';
 import 'package:duo_words/utils/word/word.dart';
+import 'package:flutter/material.dart';
 
 class Quiz {
   // If quiz is adaptative, it will start with a 3 question active pool.
@@ -18,8 +19,7 @@ class Quiz {
   int _curQuestionOfStage = 0;
 
   late List<Question> _questions;
-  late List<Word> _words;
-  late QuizConfiguration _qc;
+  late QuizConfiguration _quizConfiguration;
 
   late int _curIndex;
   late int _curMaxIndex;
@@ -29,7 +29,7 @@ class Quiz {
   }) {
     _questions =
         QuestionParser.createFromConfig(quizConfiguration: quizConfiguration);
-    _qc = quizConfiguration;
+    _quizConfiguration = quizConfiguration;
     _curMaxIndex = _questions.length - 1;
 
     _init();
@@ -37,16 +37,16 @@ class Quiz {
 
   void _init() {
     _curIndex = -1;
-    if (_qc.isAdaptative) {
+    if (_quizConfiguration.isAdaptative) {
       _curMaxIndex = _INIT_MAX_INDEX_ADAP;
     }
-    if (_qc.hasRandomOrder) {
+    if (_quizConfiguration.hasRandomOrder) {
       _questions.shuffle();
     }
   }
 
   int _getNextIndex() {
-    if (_qc.hasRandomOrder) {
+    if (_quizConfiguration.hasRandomOrder) {
       return Random().nextInt(_curMaxIndex + 1);
     } else {
       _curIndex = _curMaxIndex == 0 ? 0 : (_curIndex + 1) % (_curMaxIndex + 1);
@@ -71,5 +71,55 @@ class Quiz {
     return _curMaxIndex + 1;
   }
 
-  List<Word> get words => _words;
+  List<TextSpan> getWordsInfo() {
+    List<TextSpan> lines = [];
+
+    Map<Word, int> wordIndexes = {};
+
+    List<Word> wordList = _quizConfiguration.wordList;
+
+    List<int> activeQuestionsOfWord =
+        List.generate(wordList.length, (index) => 0);
+
+    List<int> totalQuestionsOfWord =
+        List.generate(wordList.length, (index) => 0);
+
+    // Calculate Indexes
+    for (int i = 0; i < wordList.length; i++) {
+      wordIndexes.putIfAbsent(wordList[i], () => i);
+    }
+
+    for (int i = 0; i < _questions.length; i++) {
+      Word word = _questions[i].word;
+      int wordIndex = wordIndexes[word]!;
+
+      // If in active pool
+      if (i <= _curMaxIndex) {
+        activeQuestionsOfWord[wordIndex]++;
+      }
+      totalQuestionsOfWord[wordIndex]++;
+    }
+
+    for (int i = 0; i < wordList.length; i++) {
+      Color color;
+      if (activeQuestionsOfWord[i] <= 0) {
+        color = Colors.white38;
+      } else if (activeQuestionsOfWord[i] >= totalQuestionsOfWord[i]) {
+        color = Colors.white;
+      } else {
+        color = Colors.white70;
+      }
+
+      lines.add(
+        TextSpan(
+            style: TextStyle(color: color),
+            text:
+                "- ${wordList[i].getPromptNative()}: ${activeQuestionsOfWord[i]}/${totalQuestionsOfWord[i]}\n"),
+      );
+    }
+
+    return lines;
+  }
+
+  QuizConfiguration get quizConfiguration => _quizConfiguration;
 }

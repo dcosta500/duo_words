@@ -113,6 +113,7 @@ Future<void> _writeToLocalCacheMobileAndMac(
   } catch (e) {
     printd(e);
     printd("Could not write to cache, mobile.");
+    throw Exception("Could not write to cache, mobile.");
   }
 }
 
@@ -168,5 +169,6 @@ Future<void> updateLocalCacheForLanguage(Language language) async {
   } catch (e) {
     printd(e);
     printd("Could not update local cache.");
+    throw Exception("Could not update local cache.");
   }
 }

@@ -3,7 +3,6 @@
 import 'package:audioplayers/audioplayers.dart';
 import 'package:duo_words/pages/widgets/answer.dart';
 import 'package:duo_words/utils/question/question.dart';
-import 'package:duo_words/utils/quiz_configuration.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -15,21 +14,12 @@ const String INCORRECT_SOUND_PATH = '/sounds/incorrect_sound.mp3';
 const int STATUS_TEXT_DISPLAY_DURATION_IN_SECONDS = 5;
 
 class QuizPage extends StatelessWidget {
-  final QuizConfiguration qc;
-  QuizPage({required this.qc, super.key});
+  final Quiz quiz;
+  const QuizPage({required this.quiz, super.key});
 
   RichText createWordList() {
     return RichText(
-      text: TextSpan(
-        style: TextStyle(color: Colors.white),
-        children: qc.wordList
-            .map(
-              (word) => TextSpan(
-                text: "- ${word.getPromptNative()}\n",
-              ),
-            )
-            .toList(),
-      ),
+      text: TextSpan(children: quiz.getWordsInfo()),
     );
   }
 
@@ -64,7 +54,7 @@ class QuizPage extends StatelessWidget {
         child: FractionallySizedBox(
           widthFactor: kIsWeb ? 0.5 : 1.0,
           child: QuizContent(
-            qc: qc,
+            quiz: quiz,
           ),
         ),
       ),
@@ -74,8 +64,8 @@ class QuizPage extends StatelessWidget {
 
 // Content
 class QuizContent extends StatefulWidget {
-  final QuizConfiguration qc;
-  const QuizContent({required this.qc, super.key});
+  final Quiz quiz;
+  const QuizContent({required this.quiz, super.key});
 
   @override
   State<QuizContent> createState() => _QuizContentState();
@@ -100,12 +90,12 @@ class _QuizContentState extends State<QuizContent> {
   @override
   void initState() {
     super.initState();
-    quiz = Quiz(quizConfiguration: widget.qc);
+    quiz = widget.quiz;
     printd("Quiz config\n"
-        "\t-isAdaptative: ${widget.qc.isAdaptative}\n"
-        "\t-hasRandomOrder: ${widget.qc.hasRandomOrder}\n"
-        "\t-onlyGender: ${widget.qc.doOnlyGenderedQuestions}\n"
-        "\t-onlyWritten: ${widget.qc.doOnlyWrittenQuestions}");
+        "\t-isAdaptative: ${widget.quiz.quizConfiguration.isAdaptative}\n"
+        "\t-hasRandomOrder: ${widget.quiz.quizConfiguration.hasRandomOrder}\n"
+        "\t-onlyGender: ${widget.quiz.quizConfiguration.doOnlyGenderedQuestions}\n"
+        "\t-onlyWritten: ${widget.quiz.quizConfiguration.doOnlyWrittenQuestions}");
     question = quiz.getNextQuestion();
     statusKey = GlobalKey<_StatusWidgetState>();
   }
