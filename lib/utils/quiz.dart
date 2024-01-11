@@ -122,4 +122,8 @@ class Quiz {
   }
 
   QuizConfiguration get quizConfiguration => _quizConfiguration;
+
+  bool hasQuestions() {
+    return _questions.isNotEmpty;
+  }
 }

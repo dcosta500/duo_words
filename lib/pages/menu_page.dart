@@ -56,14 +56,28 @@ class _MenuPageState extends State<MenuPage> {
 
     if (!quizConfiguration.isConfigurationCorrect()) {
       showSnackbar(context, "Quiz configuration is invalid.");
+      setState(() {
+        isLoading = false;
+      });
       return;
     }
     if (quizConfiguration.wordList.isEmpty) {
       showSnackbar(context, "No questions available.");
+      setState(() {
+        isLoading = false;
+      });
       return;
     }
 
     Quiz quiz = Quiz(quizConfiguration: quizConfiguration);
+
+    if (!quiz.hasQuestions()) {
+      showSnackbar(context, "No questions available.");
+      setState(() {
+        isLoading = false;
+      });
+      return;
+    }
 
     // Turn loading screen off
     setState(() {
