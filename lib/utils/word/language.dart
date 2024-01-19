@@ -68,7 +68,8 @@ List<LanguageChapters> get languageChapters => [
         Chapter("s1-u2-basics_2"),
         Chapter("s1-u2-greetings_1"),
         Chapter("s1-u3-restaurant_1"),
+        Chapter("s1-u3-places_1"),
         // Add more chapters as needed
       ]),
-      LanguageChapters(Language.german, []),
+      LanguageChapters(Language.dutch, []),
     ];
