@@ -32,7 +32,7 @@ class _MenuPageState extends State<MenuPage> {
 
   _MenuPageState() {
     language = Language.german;
-    chapterList = getChapters(language).reversed.toList();
+    chapterList = chaptersOfLanguage[language.name]!.reversed.toList();
     chapter = chapterList.first;
   }
 
@@ -167,7 +167,8 @@ class _MenuPageState extends State<MenuPage> {
           value: language,
           onChanged: (Language? newValue) {
             setState(() {
-              List<Chapter> auxList = getChapters(newValue!).reversed.toList();
+              List<Chapter> auxList =
+                  chaptersOfLanguage[newValue!.name]!.reversed.toList();
               if (auxList.isEmpty) {
                 printd("No chapters defined for ${newValue.name}.");
                 return;

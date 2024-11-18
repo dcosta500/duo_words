@@ -47,29 +47,51 @@ class Word {
 
   // Factory constructor for creating a new instance from a map
   factory Word.fromJson(Map<String, dynamic> json) {
-    Language language = Language.values
-        .firstWhere((e) => e.toString().split('.').last == json['language']);
+    // native, translation, gender, language, chapter
 
-    Word word = Word(
-      native: List<String>.from(json['native']),
-      translation: List<String>.from(json['translation']),
-      gender: Gender.values
-          .firstWhere((e) => e.toString().split('.').last == json['gender']),
-      language: language,
-      chapter: getChapter(language, json['chapter']),
-    );
+    List<String> native = List.of(
+        List.of(json["fields"]["native"]["arrayValue"]["values"])
+            .map((e) => e["stringValue"]));
 
-    return word;
+    List<String> translation = List.of(
+        List.of(json["fields"]["translation"]["arrayValue"]["values"])
+            .map((e) => e["stringValue"]));
+
+    Gender gender = Gender.values.firstWhere(
+        (gender) => gender.name == json["fields"]["gender"]["stringValue"]);
+
+    Language language = Language.values.firstWhere((language) =>
+        language.name == json["fields"]["language"]["stringValue"]);
+
+    Chapter chapter = chaptersOfLanguage[language.name]!.firstWhere(
+        (ch) => ch.name == json["fields"]["chapter"]["stringValue"]);
+
+    return Word(
+        native: native,
+        translation: translation,
+        gender: gender,
+        language: language,
+        chapter: chapter);
   }
 
   // Convert Word instance to a Map
   Map<String, dynamic> toJson() {
     return {
-      'native': _native,
-      'translation': _translation,
-      'gender': _gender.toString().split('.').last,
-      'language': _language.toString().split('.').last,
-      'chapter': _chapter.name, // Ensure this is a string
+      "fields": {
+        'native': {
+          "arrayValue": {
+            "values": List.of(_native.map((e) => {"stringValue": e}))
+          }
+        },
+        'translation': {
+          "arrayValue": {
+            "values": List.of(_translation.map((e) => {"stringValue": e}))
+          }
+        },
+        'gender': {"stringValue": _gender.name},
+        'language': {"stringValue": _language.name},
+        'chapter': {"stringValue": _chapter.name},
+      }
     };
   }
 

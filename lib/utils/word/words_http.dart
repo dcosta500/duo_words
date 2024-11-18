@@ -7,7 +7,8 @@ import '../../pages/consts.dart';
 Future<List<Word>> getWordListFromDb(
     Language language, Chapter? chapter) async {
   try {
-    return await readFromLocalCache(getUrlForDB(language, chapter).toString());
+    return await readFromLocalCache(
+        produceCacheKey(language.name, chapter!.name));
   } catch (e) {
     printd(e);
     printd("Could not get word list from DB.");

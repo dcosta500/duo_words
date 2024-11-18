@@ -1,3 +1,15 @@
+Map<String, List<Chapter>> get chaptersOfLanguage => {
+      Language.german.name: [
+        Chapter("s1-u1-basics_1", Language.german),
+        Chapter("s1-u1-family_1", Language.german),
+        Chapter("s1-u2-basics_2", Language.german),
+        Chapter("s1-u2-greetings_1", Language.german),
+        Chapter("s1-u3-restaurant_1", Language.german),
+        Chapter("s1-u3-places_1", Language.german),
+      ],
+      Language.dutch.name: [],
+    };
+
 enum Language {
   german,
   dutch,
@@ -5,12 +17,15 @@ enum Language {
 
 class Chapter {
   late String _name;
+  late Language _lang;
 
-  Chapter(String name) {
+  Chapter(String name, Language lang) {
     _name = name;
+    _lang = lang;
   }
 
   String get name => _name;
+  Language get lang => _lang;
 
   @override
   String toString() => _name;
@@ -21,12 +36,12 @@ class Chapter {
     // Section
     String sectionCode = parts[0];
     int sectionNumber = int.parse(sectionCode.substring(1, sectionCode.length));
-    String section = "Section $sectionNumber";
+    //String section = "Section $sectionNumber";
 
     // Unit
     String unitCode = parts[1];
     int unitNumber = int.parse(unitCode.substring(1, unitCode.length));
-    String unit = "Unit $unitNumber";
+    //String unit = "Unit $unitNumber";
 
     // Name
     String nameCode = parts[2];
@@ -37,39 +52,3 @@ class Chapter {
     return "Section $sectionNumber, Unit $unitNumber, $name";
   }
 }
-
-class LanguageChapters {
-  late Language _language;
-  late List<Chapter> _chapters;
-
-  LanguageChapters(Language language, List<Chapter> chapters) {
-    _language = language;
-    _chapters = chapters;
-  }
-
-  List<Chapter> get chapters => _chapters;
-
-  Language get language => _language;
-}
-
-Chapter getChapter(Language language, String chapter) {
-  return getChapters(language).firstWhere((c) => c.toString() == chapter);
-}
-
-List<Chapter> getChapters(Language language) {
-  return languageChapters.firstWhere((lc) => lc.language == language).chapters;
-}
-
-// Define a function or a getter to provide the chapters for each language
-List<LanguageChapters> get languageChapters => [
-      LanguageChapters(Language.german, [
-        Chapter("s1-u1-basics_1"),
-        Chapter("s1-u1-family_1"),
-        Chapter("s1-u2-basics_2"),
-        Chapter("s1-u2-greetings_1"),
-        Chapter("s1-u3-restaurant_1"),
-        Chapter("s1-u3-places_1"),
-        // Add more chapters as needed
-      ]),
-      LanguageChapters(Language.dutch, []),
-    ];

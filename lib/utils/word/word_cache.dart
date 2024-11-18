@@ -2,38 +2,31 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:duo_words/pages/consts.dart';
+import 'package:duo_words/utils/firebase/auth.dart';
+import 'package:duo_words/utils/firebase/operations.dart';
 import 'package:duo_words/utils/word/language.dart';
 import 'package:duo_words/utils/word/word.dart';
 import 'package:flutter/foundation.dart';
-import 'package:http/http.dart' as http;
-import 'package:http/http.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 const String CACHE_FILE_NAME = "cached_db_responses";
 
-Uri getUrlForDB(Language language, Chapter? chapter) {
-  String urlString =
-      "http://192.168.0.28:8080/duowords/${language.toString().split(".").last.toLowerCase()}";
-  if (chapter != null) {
-    List<String> parts = chapter.name.split("-");
-    // /section/unit/name
-    urlString += "/${parts[0]}/${parts[1]}/${parts[2]}";
-  }
-  return Uri.parse(urlString);
+String produceCacheKey(String language, String chapter) {
+  return "${language}_$chapter";
 }
 
 // ===== READ =====
-Future<List<Word>> readFromLocalCache(String url) async {
+Future<List<Word>> readFromLocalCache(String cacheKey) async {
   return kIsWeb
-      ? await _readFromLocalCacheWeb(url)
-      : await _readFromLocalCacheMobile(url);
+      ? await _readFromLocalCacheWeb(cacheKey)
+      : await _readFromLocalCacheMobile(cacheKey);
 }
 
-Future<List<Word>> _readFromLocalCacheWeb(String url) async {
+Future<List<Word>> _readFromLocalCacheWeb(String cacheKey) async {
   try {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    String jsonString = prefs.getString(url)!;
+    String jsonString = prefs.getString(cacheKey)!;
 
     List jsonList = json.decode(jsonString);
 
@@ -47,7 +40,7 @@ Future<List<Word>> _readFromLocalCacheWeb(String url) async {
   return [];
 }
 
-Future<List<Word>> _readFromLocalCacheMobile(String url) async {
+Future<List<Word>> _readFromLocalCacheMobile(String cacheKey) async {
   try {
     final directory = await getApplicationDocumentsDirectory();
     final file = File('${directory.path}/$CACHE_FILE_NAME');
@@ -56,7 +49,7 @@ Future<List<Word>> _readFromLocalCacheMobile(String url) async {
       final cacheList = json.decode(jsonString) as Map<String, dynamic>;
 
       List<Word> words = List.unmodifiable(
-        (cacheList[url] as List)
+        (cacheList[cacheKey] as List)
             .map((stringItem) => Word.fromJson(stringItem))
             .toList(),
       );
@@ -70,27 +63,27 @@ Future<List<Word>> _readFromLocalCacheMobile(String url) async {
 }
 
 // ===== WRITE =====
-Future<void> writeToLocalCache(String url, List<Word> words) async {
+Future<void> writeToLocalCache(String cacheKey, List<Word> words) async {
   //printd("Url (key): $url");
   return kIsWeb
-      ? await _writeToLocalCacheWeb(url, words)
-      : await _writeToLocalCacheMobileAndMac(url, words);
+      ? await _writeToLocalCacheWeb(cacheKey, words)
+      : await _writeToLocalCacheMobileAndMac(cacheKey, words);
 }
 
-Future<void> _writeToLocalCacheWeb(String url, List<Word> words) async {
+Future<void> _writeToLocalCacheWeb(String cacheKey, List<Word> words) async {
   try {
     //printd("Write-Web");
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setString(url, json.encode(words));
+    await prefs.setString(cacheKey, json.encode(words));
   } catch (e) {
     printd("Could not write to local cache: $e");
   }
 }
 
 Future<void> _writeToLocalCacheMobileAndMac(
-    String url, List<Word> words) async {
+    String cacheKey, List<Word> words) async {
   try {
-    //printd("Write-Mobile");
+    //printd("Write-Mobile -> $cacheKey");
     final directory = await getApplicationDocumentsDirectory();
 
     //printd("Opening directory $directory");
@@ -101,14 +94,17 @@ Future<void> _writeToLocalCacheMobileAndMac(
     // Read existing cache, if available
     if (await file.exists()) {
       String existingCache = await file.readAsString();
-      //printd("Existing content: $existingCache");
       cacheMap = json.decode(existingCache);
     }
 
     // Update cache with new data
-    cacheMap[url] = words;
+    cacheMap[cacheKey] = [];
+    for (var w in words.map((e) => e.toJson())) {
+      (cacheMap[cacheKey] as List<dynamic>).add(w);
+    }
 
     // Save updated cache
+    //printd("Saving cache");
     await file.writeAsString(json.encode(cacheMap), flush: true);
   } catch (e) {
     printd(e);
@@ -120,51 +116,23 @@ Future<void> _writeToLocalCacheMobileAndMac(
 // ===== UPDATE =====
 Future<void> updateLocalCacheForLanguage(Language language) async {
   try {
-    var url = getUrlForDB(language, null);
-
-    printd("Attempting to retrieve word list. URL: $url");
-    Response response = await http.get(url);
-    printd("Got response back.");
-
-    if (response.statusCode != 200) {
-      printd('Request failed with status: ${response.statusCode}.');
-    }
-
-    // bytes to utf8
-    String data = utf8.decode(response.bodyBytes);
-
-    //printd("Data: $data");
-
-    List<dynamic> jsonData = json.decode(data);
-
-    printd("Grouping...");
-    Map<String, List<Word>> groupedByChapter = {};
-    for (var item in jsonData) {
-      Word word = Word.fromJson(json.decode(item));
-
-      String chapter = word.chapter.name;
-
-      if (!groupedByChapter.containsKey(chapter)) {
-        groupedByChapter[chapter] = [];
-      }
-
-      // "item" cannot be used here directly, for some reason
-      groupedByChapter[chapter]?.add(word);
-    }
+    Map<String, List<Word>> wordsByChapter =
+        await getLanguageWords(language, await get_auth());
 
     printd("Writing...");
 
-    Future.forEach(groupedByChapter.entries,
+    Future.forEach(wordsByChapter.entries,
         (MapEntry<String, List<Word>> entry) async {
       String chapterString = entry.key;
       List<Word> words = entry.value;
 
       // word is already a json object
-      Chapter chapter = getChapter(language, chapterString);
+      Chapter chapter = chaptersOfLanguage[language.name]!
+          .firstWhere((ch) => ch.name == chapterString);
 
-      String url = getUrlForDB(language, chapter).toString();
+      String cacheKey = produceCacheKey(language.name, chapter.name);
 
-      await writeToLocalCache(url, words);
+      await writeToLocalCache(cacheKey, words);
     });
   } catch (e) {
     printd(e);
