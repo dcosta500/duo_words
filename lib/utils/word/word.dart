@@ -14,7 +14,7 @@ class Word {
   // Depending on the language, a word can have a gender.
   late Gender _gender;
 
-  late Language _language;
+  late String _language;
 
   late Chapter _chapter;
 
@@ -22,7 +22,7 @@ class Word {
       {required List<String> native,
       required List<String> translation,
       required Gender gender,
-      required Language language,
+      required String language,
       required Chapter chapter}) {
     _native = native;
     _translation = translation;
@@ -37,7 +37,7 @@ class Word {
 
   Chapter get chapter => _chapter;
 
-  Language get language => _language;
+  String get language => _language;
 
   Gender get gender => _gender;
 
@@ -60,10 +60,9 @@ class Word {
     Gender gender = Gender.values.firstWhere(
         (gender) => gender.name == json["fields"]["gender"]["stringValue"]);
 
-    Language language = Language.values.firstWhere((language) =>
-        language.name == json["fields"]["language"]["stringValue"]);
+    String language = json["fields"]["language"]["stringValue"];
 
-    Chapter chapter = chaptersOfLanguage[language.name]!.firstWhere(
+    Chapter chapter = chaptersOfLanguage[language]!.firstWhere(
         (ch) => ch.name == json["fields"]["chapter"]["stringValue"]);
 
     return Word(
@@ -89,7 +88,7 @@ class Word {
           }
         },
         'gender': {"stringValue": _gender.name},
-        'language': {"stringValue": _language.name},
+        'language': {"stringValue": _language},
         'chapter': {"stringValue": _chapter.name},
       }
     };
@@ -97,6 +96,6 @@ class Word {
 
   @override
   String toString() {
-    return "Word -> native: $_native; translation: $translation; gender: ${gender.name}; language: ${language.name}; chapter: ${chapter.name}";
+    return "Word -> native: $_native; translation: $translation; gender: ${gender.name}; language: ${language}; chapter: ${chapter.name}";
   }
 }

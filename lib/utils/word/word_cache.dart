@@ -12,18 +12,20 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 const String CACHE_FILE_NAME = "cached_db_responses";
 
+const String CHAPTERS_OF_LANGUAGE_CACHENAME = "chapters_of_language";
+
 String produceCacheKey(String language, String chapter) {
   return "${language}_$chapter";
 }
 
 // ===== READ =====
-Future<List<Word>> readFromLocalCache(String cacheKey) async {
+Future<List<Word>> readWordListFromLocalCache(String cacheKey) async {
   return kIsWeb
-      ? await _readFromLocalCacheWeb(cacheKey)
-      : await _readFromLocalCacheMobile(cacheKey);
+      ? await _readWordListFromLocalCacheWeb(cacheKey)
+      : await _readWordListFromLocalCacheMobile(cacheKey);
 }
 
-Future<List<Word>> _readFromLocalCacheWeb(String cacheKey) async {
+Future<List<Word>> _readWordListFromLocalCacheWeb(String cacheKey) async {
   try {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String jsonString = prefs.getString(cacheKey)!;
@@ -40,7 +42,7 @@ Future<List<Word>> _readFromLocalCacheWeb(String cacheKey) async {
   return [];
 }
 
-Future<List<Word>> _readFromLocalCacheMobile(String cacheKey) async {
+Future<List<Word>> _readWordListFromLocalCacheMobile(String cacheKey) async {
   try {
     final directory = await getApplicationDocumentsDirectory();
     final file = File('${directory.path}/$CACHE_FILE_NAME');
@@ -62,15 +64,54 @@ Future<List<Word>> _readFromLocalCacheMobile(String cacheKey) async {
   return [];
 }
 
-// ===== WRITE =====
-Future<void> writeToLocalCache(String cacheKey, List<Word> words) async {
-  //printd("Url (key): $url");
+Future<void> readChaptersOfLanguageFromLocalCache() async {
   return kIsWeb
-      ? await _writeToLocalCacheWeb(cacheKey, words)
-      : await _writeToLocalCacheMobileAndMac(cacheKey, words);
+      ? await _readChaptersOfLanguageFromLocalCacheWeb()
+      : await _readChaptersOfLanguageFromLocalCacheMobile();
 }
 
-Future<void> _writeToLocalCacheWeb(String cacheKey, List<Word> words) async {
+Future<void> _readChaptersOfLanguageFromLocalCacheWeb() async {
+  try {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String jsonString = prefs.getString(CHAPTERS_OF_LANGUAGE_CACHENAME)!;
+    chaptersOfLanguage = json.decode(jsonString);
+  } catch (e) {
+    printd('Error reading from local web file: $e');
+  }
+}
+
+Future<void> _readChaptersOfLanguageFromLocalCacheMobile() async {
+  try {
+    printd("Reading Chapters of Language");
+    final directory = await getApplicationDocumentsDirectory();
+    final file = File('${directory.path}/$CACHE_FILE_NAME');
+    if (await file.exists()) {
+      final jsonString = await file.readAsString();
+      Map<String, dynamic> cacheList =
+          json.decode(json.decode(jsonString)[CHAPTERS_OF_LANGUAGE_CACHENAME]);
+
+      chaptersOfLanguage = cacheList.map((key, value) {
+        printd("Value: ${List.of(value)}");
+        return MapEntry(
+            key, List.of(value).map((e) => Chapter.fromJson(e)).toList());
+      });
+    }
+  } catch (e) {
+    printd('Error reading from local file: $e');
+  }
+}
+
+// ===== WRITE =====
+Future<void> writeWordListToLocalCache(
+    String cacheKey, List<Word> words) async {
+  //printd("Url (key): $url");
+  return kIsWeb
+      ? await _writeWordListToLocalCacheWeb(cacheKey, words)
+      : await _writeWordListToLocalCacheMobileAndMac(cacheKey, words);
+}
+
+Future<void> _writeWordListToLocalCacheWeb(
+    String cacheKey, List<Word> words) async {
   try {
     //printd("Write-Web");
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -80,7 +121,7 @@ Future<void> _writeToLocalCacheWeb(String cacheKey, List<Word> words) async {
   }
 }
 
-Future<void> _writeToLocalCacheMobileAndMac(
+Future<void> _writeWordListToLocalCacheMobileAndMac(
     String cacheKey, List<Word> words) async {
   try {
     //printd("Write-Mobile -> $cacheKey");
@@ -113,30 +154,99 @@ Future<void> _writeToLocalCacheMobileAndMac(
   }
 }
 
-// ===== UPDATE =====
-Future<void> updateLocalCacheForLanguage(Language language) async {
+Future<void> writeChaptersOfLanguageToLocalCache() async {
+  //printd("Url (key): $url");
+  return kIsWeb
+      ? await _writeChaptersOfLanguageToLocalCacheWeb()
+      : await _writeChaptersOfLanguageToLocalCacheMobileAndMac();
+}
+
+Future<void> _writeChaptersOfLanguageToLocalCacheWeb() async {
   try {
-    Map<String, List<Word>> wordsByChapter =
-        await getLanguageWords(language, await get_auth());
+    //printd("Write-Web");
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString(
+        CHAPTERS_OF_LANGUAGE_CACHENAME, json.encode(chaptersOfLanguage));
+  } catch (e) {
+    printd("Could not write to local cache: $e");
+  }
+}
 
-    printd("Writing...");
+Future<void> _writeChaptersOfLanguageToLocalCacheMobileAndMac() async {
+  try {
+    //printd("Write-Mobile -> $cacheKey");
+    final directory = await getApplicationDocumentsDirectory();
 
-    Future.forEach(wordsByChapter.entries,
-        (MapEntry<String, List<Word>> entry) async {
-      String chapterString = entry.key;
-      List<Word> words = entry.value;
+    //printd("Opening directory $directory");
+    final file = File('${directory.path}/$CACHE_FILE_NAME');
 
-      // word is already a json object
-      Chapter chapter = chaptersOfLanguage[language.name]!
-          .firstWhere((ch) => ch.name == chapterString);
+    Map<String, dynamic> cacheMap = {};
 
-      String cacheKey = produceCacheKey(language.name, chapter.name);
+    // Read existing cache, if available
+    if (await file.exists()) {
+      String existingCache = await file.readAsString();
+      cacheMap = json.decode(existingCache);
+    }
 
-      await writeToLocalCache(cacheKey, words);
-    });
+    // Save chapters of language
+    cacheMap[CHAPTERS_OF_LANGUAGE_CACHENAME] = jsonEncode(chaptersOfLanguage);
+
+    // Save updated cache
+    //printd("Saving cache");
+    await file.writeAsString(json.encode(cacheMap), flush: true);
   } catch (e) {
     printd(e);
+    printd("Could not write to cache, mobile.");
+    throw Exception("Could not write to cache, mobile.");
+  }
+}
+
+// ===== UPDATE =====
+/// Updates everything.
+Future<void> updateLocalLanguageCache() async {
+  try {
+    chaptersOfLanguage = {};
+    List<String> auth = await get_auth();
+    List<String> languages = await getLanguageCourses(auth);
+
+    List<String> chapters = await getChapters(auth);
+
+    for (String ch in chapters) {
+      String lang = ch.split("_")[0];
+      String chap = ch.split("_").skip(1).join("_");
+
+      chaptersOfLanguage.putIfAbsent(lang, () {
+        List<Chapter> c = [];
+        return c;
+      });
+      chaptersOfLanguage[lang]!.add(Chapter(chap, lang));
+    }
+    await writeChaptersOfLanguageToLocalCache();
+
+    for (String l in languages) {
+      Map<String, List<Word>> wordsByChapter =
+          await getLanguageWords(l, await get_auth());
+
+      printd("Writing...");
+
+      Future.forEach(wordsByChapter.entries,
+          (MapEntry<String, List<Word>> entry) async {
+        String chapterString = entry.key;
+        List<Word> words = entry.value;
+
+        // word is already a json object
+        Chapter chapter =
+            chaptersOfLanguage[l]!.firstWhere((ch) => ch.name == chapterString);
+
+        String cacheKey = produceCacheKey(l, chapter.name);
+
+        await writeWordListToLocalCache(cacheKey, words);
+      });
+    }
+  } catch (e) {
+    chaptersOfLanguage = {};
+    printd(e);
     printd("Could not update local cache.");
-    throw Exception("Could not update local cache.");
+    rethrow;
   }
 }

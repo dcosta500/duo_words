@@ -110,8 +110,8 @@ class _QuizContentState extends State<QuizContent> {
     if (question.isGenderQuestion) {
       return "What's this word's gender?";
     } else {
-      String language = question.word.language.name[0].toUpperCase() +
-          question.word.language.name.substring(1);
+      String language = question.word.language[0].toUpperCase() +
+          question.word.language.substring(1);
       return "Translate to ${question.isPromptNative ? "English" : language}";
     }
   }

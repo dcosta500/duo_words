@@ -8,13 +8,13 @@ import '../word/word.dart';
 
 // Get language
 Future<Map<String, List<Word>>> getLanguageWords(
-    Language lang, List auth) async {
+    String language, List auth) async {
   String accessToken = auth[0];
   String projectId = auth[1];
   final FIRESTORE_BASE_URL =
       'https://firestore.googleapis.com/v1/projects/$projectId/databases/(default)/documents';
 
-  List<Chapter>? chs = chaptersOfLanguage[lang.name];
+  List<Chapter>? chs = chaptersOfLanguage[language];
   Map<String, List<Word>> wordMap = {};
   for (var ch in chs!) {
     final response = await http.get(
@@ -89,6 +89,7 @@ Future<List<String>> getChapters(List auth) async {
     return [""];
   }
 
-  return List.of(List.of(json.decode(response.body)["documents"])
-      .map((e) => e["name"].toString().split("/").last));
+  return List.of(json.decode(response.body)["documents"])
+      .map((e) => e["name"].toString().split("/").last)
+      .toList();
 }

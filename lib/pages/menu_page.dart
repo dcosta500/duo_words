@@ -19,9 +19,9 @@ class MenuPage extends StatefulWidget {
 }
 
 class _MenuPageState extends State<MenuPage> {
-  late Language language = Language.german; // Default language
+  late String language = ""; // Default language
   late List<Chapter> chapterList;
-  late Chapter chapter; // Default chapter
+  late String chapter; // Default chapter
 
   bool isAdaptative = false;
   bool hasRandomOrder = false;
@@ -30,13 +30,30 @@ class _MenuPageState extends State<MenuPage> {
 
   bool isLoading = false;
 
-  _MenuPageState() {
-    language = Language.german;
-    chapterList = chaptersOfLanguage[language.name]!.reversed.toList();
-    chapter = chapterList.first;
+  _MenuPageState();
+
+  @override
+  void initState() {
+    super.initState();
+    isLoading = true;
+    _loadFromCache();
+  }
+
+  Future<void> _loadFromCache() async {
+    await readChaptersOfLanguageFromLocalCache();
+    language = chaptersOfLanguage.isEmpty ? "" : chaptersOfLanguage.keys.first;
+    chapterList =
+        chaptersOfLanguage.isEmpty ? [] : chaptersOfLanguage[language]!;
+
+    chapter = chapterList.isEmpty ? "" : chapterList.last.name;
+    setState(() {
+      isLoading = false;
+    });
   }
 
   void startButtonFunction() async {
+    if (chaptersOfLanguage.isEmpty) return;
+
     // Turn loading screen on
     setState(() {
       isLoading = true;
@@ -45,8 +62,6 @@ class _MenuPageState extends State<MenuPage> {
     // Process
     List<Word> wordList = await getWordListFromDb(language, chapter);
     QuizConfiguration quizConfiguration = QuizConfiguration(
-      language: language,
-      chapter: chapter,
       wordList: wordList,
       isAdaptative: isAdaptative,
       hasRandomOrder: hasRandomOrder,
@@ -162,51 +177,58 @@ class _MenuPageState extends State<MenuPage> {
         ),
         SizedBox(height: 50.0),
         // Additional Operations
-        DropdownButton<Language>(
-          dropdownColor: Colors.black,
-          value: language,
-          onChanged: (Language? newValue) {
-            setState(() {
-              List<Chapter> auxList =
-                  chaptersOfLanguage[newValue!.name]!.reversed.toList();
-              if (auxList.isEmpty) {
-                printd("No chapters defined for ${newValue.name}.");
-                return;
-              }
+        chaptersOfLanguage.isNotEmpty && !isLoading
+            ? DropdownButton<String>(
+                dropdownColor: Colors.black,
+                value: language,
+                onChanged: (String? newValue) {
+                  setState(() {
+                    List<Chapter> auxList =
+                        chaptersOfLanguage[newValue!]!.reversed.toList();
+                    if (auxList.isEmpty) {
+                      printd("No chapters defined for ${newValue}.");
+                      return;
+                    }
 
-              language = newValue;
-              chapterList = auxList;
-              chapter = chapterList.first;
-            });
-          },
-          items:
-              Language.values.map<DropdownMenuItem<Language>>((Language value) {
-            return DropdownMenuItem<Language>(
-              value: value,
-              child:
-                  Text(value.name[0].toUpperCase() + value.name.substring(1)),
-            );
-          }).toList(),
-        ),
-        DropdownButton<Chapter>(
-          dropdownColor: Colors.black,
-          value: chapter,
-          onChanged: (Chapter? newValue) {
-            setState(() {
-              chapter = newValue!;
-            });
-          },
-          items: chapterList.map<DropdownMenuItem<Chapter>>((Chapter value) {
-            return DropdownMenuItem<Chapter>(
-              value: value,
-              child: Text(value.getPresentationString()),
-            );
-          }).toList(),
-        ),
+                    language = newValue;
+                    chapterList = auxList;
+                    chapter = chapterList.first.name;
+                  });
+                },
+                items: chaptersOfLanguage.keys
+                    .map<DropdownMenuItem<String>>((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value[0].toUpperCase() + value.substring(1)),
+                  );
+                }).toList(),
+              )
+            : SizedBox.shrink(),
+        chaptersOfLanguage.isNotEmpty && !isLoading
+            ? DropdownButton<String>(
+                dropdownColor: Colors.black,
+                value: chapter,
+                onChanged: (String? newValue) {
+                  setState(() {
+                    chapter = newValue!;
+                  });
+                },
+                items: chapterList
+                    .map<DropdownMenuItem<String>>((Chapter value) {
+                      return DropdownMenuItem<String>(
+                        value: value.name,
+                        child: Text(getPresentationString(value.name)),
+                      );
+                    })
+                    .toList()
+                    .reversed
+                    .toList(),
+              )
+            : SizedBox.shrink(),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text('Download/Update ${language.name} course.'),
+            Text('Download/Update courses.'),
             IconButton(
               icon: Icon(Icons.update, size: 30),
               onPressed: () async {
@@ -214,9 +236,17 @@ class _MenuPageState extends State<MenuPage> {
                   isLoading = true;
                 });
                 try {
-                  await updateLocalCacheForLanguage(language);
+                  await updateLocalLanguageCache();
+                  language = chaptersOfLanguage.isEmpty
+                      ? ""
+                      : chaptersOfLanguage.keys.first;
+                  chapterList = chaptersOfLanguage.isEmpty
+                      ? []
+                      : chaptersOfLanguage[language]!;
+
+                  chapter = chapterList.isEmpty ? "" : chapterList.last.name;
                 } catch (e) {
-                  showSnackbar(context, "Could not update cache.");
+                  showSnackbar(context, "Could not update cache. $e");
                   setState(() {
                     isLoading = false;
                   });
