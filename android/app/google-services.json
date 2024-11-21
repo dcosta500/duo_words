@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "861775285204",
+    "project_id": "duo-words-ca0ac",
+    "storage_bucket": "duo-words-ca0ac.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:861775285204:android:091129094486e26fa7a441",
+        "android_client_info": {
+          "package_name": "diogocosta.com.duo_words"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC7JuRqdHabQ9NUdzu8bwaoNM8eq0fsd9U"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
