@@ -1,6 +1,7 @@
 enum Gender {
   M, // Masculine
   F, // Feminine
+  C, //
   N, // Neuter
   NA, // Not Applicable
 }
@@ -12,6 +13,8 @@ abstract class GenderClass {
         return "Male";
       case Gender.F:
         return "Female";
+      case Gender.C:
+        return "Common";
       case Gender.N:
         return "Neuter";
       default:
@@ -25,6 +28,8 @@ abstract class GenderClass {
         return "Masc.";
       case Gender.F:
         return "Fem.";
+      case Gender.C:
+        return "Com.";
       case Gender.N:
         return "Nt.";
       default:

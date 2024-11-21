@@ -60,18 +60,16 @@ class GenderAnswer extends Answer {
     List<Widget> buttons = Gender.values
         .where((gender) => gender != Gender.NA)
         .map(
-          (gender) => Expanded(
-            child: ElevatedButton(
-              onPressed:
-                  answerQuestion(question, GenderClass.getString(gender)),
-              child: Text(GenderClass.getString(gender)),
-            ),
+          (gender) => ElevatedButton(
+            onPressed: answerQuestion(question, GenderClass.getString(gender)),
+            child: Text(GenderClass.getString(gender)),
           ),
         )
         .toList();
 
-    return Row(
+    return Column(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: buttons,
     );
   }

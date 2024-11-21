@@ -1,34 +1,27 @@
 // Upload Chapter
-import 'dart:convert';
-
-import 'package:http/http.dart' as http;
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../word/language.dart';
 import '../word/word.dart';
 
 // Get language
-Future<Map<String, List<Word>>> getLanguageWords(
-    String language, List auth) async {
-  String accessToken = auth[0];
-  String projectId = auth[1];
-  final FIRESTORE_BASE_URL =
-      'https://firestore.googleapis.com/v1/projects/$projectId/databases/(default)/documents';
-
+Future<Map<String, List<Word>>> getLanguageWords(String language) async {
   List<Chapter>? chs = chaptersOfLanguage[language];
   Map<String, List<Word>> wordMap = {};
+
   for (var ch in chs!) {
-    final response = await http.get(
-      Uri.parse("$FIRESTORE_BASE_URL/words/german/${ch.name}"),
-      headers: {
-        'Authorization': 'Bearer $accessToken',
-        'Content-Type': 'application/json',
-      },
-    );
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      var m = List.of(Map.of(data)['documents']);
-      for (var jsonWord in m) {
-        Word w = Word.fromJson(jsonWord);
+    final collectionRef = FirebaseFirestore.instance
+        .collection('words')
+        .doc(language)
+        .collection(ch.name);
+
+    QuerySnapshot querySnapshot = await collectionRef.get();
+    if (querySnapshot.docs.isNotEmpty) {
+      for (QueryDocumentSnapshot doc in querySnapshot.docs) {
+        // Access data from each document
+        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        Word w = Word.fromJson(data);
+
         wordMap.putIfAbsent(ch.name, () {
           List<Word> w = [];
           return w;
@@ -36,60 +29,44 @@ Future<Map<String, List<Word>>> getLanguageWords(
         wordMap[ch.name]!.add(w);
       }
     } else {
-      print(
-          'Failed to retrieve document: ${response.statusCode}, ${response.body}');
+      print('No documents found in the collection.');
     }
   }
   return wordMap;
 }
 
-Future<List<String>> getLanguageCourses(List auth) async {
-  String accessToken = auth[0];
-  String projectId = auth[1];
-  final FIRESTORE_BASE_URL =
-      'https://firestore.googleapis.com/v1/projects/$projectId/databases/(default)/documents';
+Future<List<String>> getLanguageCourses() async {
+  final collectionRef = FirebaseFirestore.instance.collection('languages');
 
-  final response = await http.get(
-    Uri.parse('$FIRESTORE_BASE_URL/languages'),
-    headers: {
-      'Authorization': 'Bearer $accessToken',
-      'Content-Type': 'application/json',
-    },
-  );
-
-  if (response.statusCode == 200) {
-    //print(response.body);
-  } else {
-    print(response.body);
-    return [""];
+  List<String> languages = [];
+  try {
+    QuerySnapshot querySnapshot = await collectionRef.get();
+    if (querySnapshot.docs.isNotEmpty) {
+      languages.addAll(querySnapshot.docs.map((doc) => doc.id));
+    } else {
+      print('No languages found in the collection');
+    }
+  } catch (e) {
+    print('Error fetching documents: $e');
   }
 
-  return List.of(List.of(json.decode(response.body)["documents"])
-      .map((e) => e["name"].toString().split("/").last));
+  return languages;
 }
 
-Future<List<String>> getChapters(List auth) async {
-  String accessToken = auth[0];
-  String projectId = auth[1];
-  final FIRESTORE_BASE_URL =
-      'https://firestore.googleapis.com/v1/projects/$projectId/databases/(default)/documents';
+Future<List<String>> getChapters() async {
+  final collectionRef = FirebaseFirestore.instance.collection('chapters');
 
-  final response = await http.get(
-    Uri.parse('$FIRESTORE_BASE_URL/chapters'),
-    headers: {
-      'Authorization': 'Bearer $accessToken',
-      'Content-Type': 'application/json',
-    },
-  );
-
-  if (response.statusCode == 200) {
-    //print(response.body);
-  } else {
-    print(response.body);
-    return [""];
+  List<String> chapters = [];
+  try {
+    QuerySnapshot querySnapshot = await collectionRef.get();
+    if (querySnapshot.docs.isNotEmpty) {
+      chapters.addAll(querySnapshot.docs.map((doc) => doc.id));
+    } else {
+      print('No chapters found in the collection');
+    }
+  } catch (e) {
+    print('Error fetching documents: $e');
   }
 
-  return List.of(json.decode(response.body)["documents"])
-      .map((e) => e["name"].toString().split("/").last)
-      .toList();
+  return chapters;
 }

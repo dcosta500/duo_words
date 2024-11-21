@@ -4,7 +4,6 @@ import 'package:duo_words/pages/quiz_page.dart';
 import 'package:duo_words/utils/quiz.dart';
 import 'package:duo_words/utils/quiz_configuration.dart';
 import 'package:duo_words/utils/word/word_cache.dart';
-import 'package:duo_words/utils/word/words_http.dart';
 import 'package:flutter/material.dart';
 
 import '../utils/word/language.dart';
@@ -36,16 +35,19 @@ class _MenuPageState extends State<MenuPage> {
   void initState() {
     super.initState();
     isLoading = true;
-    _loadFromCache();
+    _initializeAppState();
   }
 
-  Future<void> _loadFromCache() async {
+  Future<void> _initializeAppState() async {
+    // Retrive chaptersOfLanguage
     await readChaptersOfLanguageFromLocalCache();
     language = chaptersOfLanguage.isEmpty ? "" : chaptersOfLanguage.keys.first;
     chapterList =
         chaptersOfLanguage.isEmpty ? [] : chaptersOfLanguage[language]!;
 
     chapter = chapterList.isEmpty ? "" : chapterList.last.name;
+
+    // Remove loading
     setState(() {
       isLoading = false;
     });
@@ -60,7 +62,7 @@ class _MenuPageState extends State<MenuPage> {
     });
 
     // Process
-    List<Word> wordList = await getWordListFromDb(language, chapter);
+    List<Word> wordList = await readWordListFromLocalCache(language, chapter);
     QuizConfiguration quizConfiguration = QuizConfiguration(
       wordList: wordList,
       isAdaptative: isAdaptative,
@@ -76,6 +78,7 @@ class _MenuPageState extends State<MenuPage> {
       });
       return;
     }
+
     if (quizConfiguration.wordList.isEmpty) {
       showSnackbar(context, "No questions available.");
       setState(() {
@@ -106,6 +109,33 @@ class _MenuPageState extends State<MenuPage> {
         builder: (context) => QuizPage(quiz: quiz),
       ),
     );
+  }
+
+  VoidCallback updateCourseButtonFunction(BuildContext context) {
+    return () async {
+      setState(() {
+        isLoading = true;
+      });
+      try {
+        await updateLocalLanguageCache();
+        language =
+            chaptersOfLanguage.isEmpty ? "" : chaptersOfLanguage.keys.first;
+        chapterList =
+            chaptersOfLanguage.isEmpty ? [] : chaptersOfLanguage[language]!;
+
+        chapter = chapterList.isEmpty ? "" : chapterList.last.name;
+      } catch (e) {
+        showSnackbar(context, "Could not update cache. $e");
+        setState(() {
+          isLoading = false;
+        });
+        return;
+      }
+      setState(() {
+        isLoading = false;
+      });
+      showSnackbar(context, "Cache updated successfuly.");
+    };
   }
 
   @override
@@ -231,32 +261,7 @@ class _MenuPageState extends State<MenuPage> {
             Text('Download/Update courses.'),
             IconButton(
               icon: Icon(Icons.update, size: 30),
-              onPressed: () async {
-                setState(() {
-                  isLoading = true;
-                });
-                try {
-                  await updateLocalLanguageCache();
-                  language = chaptersOfLanguage.isEmpty
-                      ? ""
-                      : chaptersOfLanguage.keys.first;
-                  chapterList = chaptersOfLanguage.isEmpty
-                      ? []
-                      : chaptersOfLanguage[language]!;
-
-                  chapter = chapterList.isEmpty ? "" : chapterList.last.name;
-                } catch (e) {
-                  showSnackbar(context, "Could not update cache. $e");
-                  setState(() {
-                    isLoading = false;
-                  });
-                  return;
-                }
-                setState(() {
-                  isLoading = false;
-                });
-                showSnackbar(context, "Cache updated successfuly.");
-              },
+              onPressed: updateCourseButtonFunction(context),
               tooltip: 'Fetch Course Updates',
             ),
           ],

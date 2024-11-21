@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:duo_words/pages/consts.dart';
-import 'package:duo_words/utils/firebase/auth.dart';
 import 'package:duo_words/utils/firebase/operations.dart';
 import 'package:duo_words/utils/word/language.dart';
 import 'package:duo_words/utils/word/word.dart';
@@ -19,10 +18,12 @@ String produceCacheKey(String language, String chapter) {
 }
 
 // ===== READ =====
-Future<List<Word>> readWordListFromLocalCache(String cacheKey) async {
+Future<List<Word>> readWordListFromLocalCache(
+    String language, String chapter) async {
   return kIsWeb
-      ? await _readWordListFromLocalCacheWeb(cacheKey)
-      : await _readWordListFromLocalCacheMobile(cacheKey);
+      ? await _readWordListFromLocalCacheWeb(produceCacheKey(language, chapter))
+      : await _readWordListFromLocalCacheMobile(
+          produceCacheKey(language, chapter));
 }
 
 Future<List<Word>> _readWordListFromLocalCacheWeb(String cacheKey) async {
@@ -50,11 +51,15 @@ Future<List<Word>> _readWordListFromLocalCacheMobile(String cacheKey) async {
       final jsonString = await file.readAsString();
       final cacheList = json.decode(jsonString) as Map<String, dynamic>;
 
+      //printd(cacheList[cacheKey] as List);
+
       List<Word> words = List.unmodifiable(
         (cacheList[cacheKey] as List)
             .map((stringItem) => Word.fromJson(stringItem))
             .toList(),
       );
+
+      printd(words[0]);
 
       return words;
     }
@@ -206,10 +211,8 @@ Future<void> _writeChaptersOfLanguageToLocalCacheMobileAndMac() async {
 Future<void> updateLocalLanguageCache() async {
   try {
     chaptersOfLanguage = {};
-    List<String> auth = await get_auth();
-    List<String> languages = await getLanguageCourses(auth);
-
-    List<String> chapters = await getChapters(auth);
+    List<String> languages = await getLanguageCourses();
+    List<String> chapters = await getChapters();
 
     for (String ch in chapters) {
       String lang = ch.split("_")[0];
@@ -224,8 +227,7 @@ Future<void> updateLocalLanguageCache() async {
     await writeChaptersOfLanguageToLocalCache();
 
     for (String l in languages) {
-      Map<String, List<Word>> wordsByChapter =
-          await getLanguageWords(l, await get_auth());
+      Map<String, List<Word>> wordsByChapter = await getLanguageWords(l);
 
       printd("Writing...");
 

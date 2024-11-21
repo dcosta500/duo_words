@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'gender.dart';
 import 'language.dart';
 
@@ -47,50 +49,48 @@ class Word {
 
   // Factory constructor for creating a new instance from a map
   factory Word.fromJson(Map<String, dynamic> json) {
-    // native, translation, gender, language, chapter
+    List<String> native = [];
+    if (json["native"].runtimeType == String) {
+      native = (jsonDecode(json["native"]) as List)
+          .map((e) => e.toString())
+          .toList();
+    } else {
+      native =
+          List.of(json["native"] as List).map((e) => e.toString()).toList();
+    }
 
-    List<String> native = List.of(
-        List.of(json["fields"]["native"]["arrayValue"]["values"])
-            .map((e) => e["stringValue"]));
+    List<String> translation = [];
+    if (json["translation"].runtimeType == String) {
+      translation = (jsonDecode(json["translation"]) as List)
+          .map((e) => e.toString())
+          .toList();
+    } else {
+      translation = List.of(json["translation"] as List)
+          .map((e) => e.toString())
+          .toList();
+    }
 
-    List<String> translation = List.of(
-        List.of(json["fields"]["translation"]["arrayValue"]["values"])
-            .map((e) => e["stringValue"]));
-
-    Gender gender = Gender.values.firstWhere(
-        (gender) => gender.name == json["fields"]["gender"]["stringValue"]);
-
-    String language = json["fields"]["language"]["stringValue"];
-
-    Chapter chapter = chaptersOfLanguage[language]!.firstWhere(
-        (ch) => ch.name == json["fields"]["chapter"]["stringValue"]);
+    Gender gender = Gender.values.firstWhere((g) => g.name == json["gender"]);
+    String language = json["language"];
+    Chapter chapter = Chapter(json["chapter"], json["language"]);
 
     return Word(
-        native: native,
-        translation: translation,
-        gender: gender,
-        language: language,
-        chapter: chapter);
+      native: native,
+      translation: translation,
+      gender: gender,
+      language: language,
+      chapter: chapter,
+    );
   }
 
   // Convert Word instance to a Map
   Map<String, dynamic> toJson() {
     return {
-      "fields": {
-        'native': {
-          "arrayValue": {
-            "values": List.of(_native.map((e) => {"stringValue": e}))
-          }
-        },
-        'translation': {
-          "arrayValue": {
-            "values": List.of(_translation.map((e) => {"stringValue": e}))
-          }
-        },
-        'gender': {"stringValue": _gender.name},
-        'language': {"stringValue": _language},
-        'chapter': {"stringValue": _chapter.name},
-      }
+      "native": jsonEncode(_native),
+      "translation": jsonEncode(_translation),
+      "gender": _gender.name,
+      "language": _language,
+      "chapter": _chapter.name,
     };
   }
 
