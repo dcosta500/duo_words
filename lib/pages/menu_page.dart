@@ -39,7 +39,7 @@ class _MenuPageState extends State<MenuPage> {
   }
 
   Future<void> _initializeAppState() async {
-    // Retrive chaptersOfLanguage
+    // Retrieve chaptersOfLanguage
     await readChaptersOfLanguageFromLocalCache();
     language = chaptersOfLanguage.isEmpty ? "" : chaptersOfLanguage.keys.first;
     chapterList =
@@ -53,62 +53,64 @@ class _MenuPageState extends State<MenuPage> {
     });
   }
 
-  void startButtonFunction() async {
-    if (chaptersOfLanguage.isEmpty) return;
+  VoidCallback startButtonFunction(BuildContext context) {
+    return () async {
+      if (chaptersOfLanguage.isEmpty) return;
 
-    // Turn loading screen on
-    setState(() {
-      isLoading = true;
-    });
+      // Turn loading screen on
+      setState(() {
+        isLoading = true;
+      });
 
-    // Process
-    List<Word> wordList = await readWordListFromLocalCache(language, chapter);
-    QuizConfiguration quizConfiguration = QuizConfiguration(
-      wordList: wordList,
-      isAdaptative: isAdaptative,
-      hasRandomOrder: hasRandomOrder,
-      doOnlyGenderedQuestions: doOnlyGenderedQuestions,
-      doOnlyWrittenQuestions: doOnlyWrittenQuestions,
-    );
+      // Process
+      List<Word> wordList = await readWordListFromLocalCache(language, chapter);
+      QuizConfiguration quizConfiguration = QuizConfiguration(
+        wordList: wordList,
+        isAdaptative: isAdaptative,
+        hasRandomOrder: hasRandomOrder,
+        doOnlyGenderedQuestions: doOnlyGenderedQuestions,
+        doOnlyWrittenQuestions: doOnlyWrittenQuestions,
+      );
 
-    if (!quizConfiguration.isConfigurationCorrect()) {
-      showSnackbar(context, "Quiz configuration is invalid.");
+      if (!quizConfiguration.isConfigurationCorrect()) {
+        showSnackbar(context, "Quiz configuration is invalid.");
+        setState(() {
+          isLoading = false;
+        });
+        return;
+      }
+
+      if (quizConfiguration.wordList.isEmpty) {
+        showSnackbar(context, "No questions available.");
+        setState(() {
+          isLoading = false;
+        });
+        return;
+      }
+
+      Quiz quiz = Quiz(quizConfiguration: quizConfiguration);
+
+      if (!quiz.hasQuestions()) {
+        showSnackbar(context, "No questions available.");
+        setState(() {
+          isLoading = false;
+        });
+        return;
+      }
+
+      // Turn loading screen off
       setState(() {
         isLoading = false;
       });
-      return;
-    }
 
-    if (quizConfiguration.wordList.isEmpty) {
-      showSnackbar(context, "No questions available.");
-      setState(() {
-        isLoading = false;
-      });
-      return;
-    }
-
-    Quiz quiz = Quiz(quizConfiguration: quizConfiguration);
-
-    if (!quiz.hasQuestions()) {
-      showSnackbar(context, "No questions available.");
-      setState(() {
-        isLoading = false;
-      });
-      return;
-    }
-
-    // Turn loading screen off
-    setState(() {
-      isLoading = false;
-    });
-
-    // Navigate
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => QuizPage(quiz: quiz),
-      ),
-    );
+      // Navigate
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => QuizPage(quiz: quiz),
+        ),
+      );
+    };
   }
 
   VoidCallback updateCourseButtonFunction(BuildContext context) {
@@ -155,7 +157,7 @@ class _MenuPageState extends State<MenuPage> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         // Buttons
-        StartButton(onPressed: startButtonFunction),
+        StartButton(onPressed: startButtonFunction(context)),
         SizedBox(height: 50.0),
         // Switches
         Column(

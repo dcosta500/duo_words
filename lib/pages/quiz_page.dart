@@ -1,16 +1,16 @@
 // ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
 
-import 'package:audioplayers/audioplayers.dart';
 import 'package:duo_words/pages/widgets/answer.dart';
 import 'package:duo_words/utils/question/question.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:just_audio/just_audio.dart';
 
 import '../utils/quiz.dart';
 import 'consts.dart';
 
-const String CORRECT_SOUND_PATH = '/sounds/correct_sound.mp3';
-const String INCORRECT_SOUND_PATH = '/sounds/incorrect_sound.mp3';
+const String CORRECT_SOUND_PATH = 'assets/sounds/correct_sound.mp3';
+const String INCORRECT_SOUND_PATH = 'assets/sounds/incorrect_sound.mp3';
 const int STATUS_TEXT_DISPLAY_DURATION_IN_SECONDS = 5;
 
 class QuizPage extends StatelessWidget {
@@ -72,7 +72,10 @@ class QuizContent extends StatefulWidget {
 }
 
 class _QuizContentState extends State<QuizContent> {
-  final AudioPlayer audioPlayer = AudioPlayer();
+  final AudioPlayer correctSoundPlayer =
+      AudioPlayer(handleAudioSessionActivation: false);
+  final AudioPlayer incorrectSoundPlayer =
+      AudioPlayer(handleAudioSessionActivation: false);
 
   late GlobalKey<_StatusWidgetState> statusKey;
   late Question question;
@@ -98,11 +101,15 @@ class _QuizContentState extends State<QuizContent> {
         "\t-onlyWritten: ${widget.quiz.quizConfiguration.doOnlyWrittenQuestions}");
     question = quiz.getNextQuestion();
     statusKey = GlobalKey<_StatusWidgetState>();
+
+    correctSoundPlayer.setAsset(CORRECT_SOUND_PATH);
+    incorrectSoundPlayer.setAsset(INCORRECT_SOUND_PATH);
   }
 
   @override
   void dispose() {
-    audioPlayer.dispose();
+    correctSoundPlayer.dispose();
+    incorrectSoundPlayer.dispose();
     super.dispose();
   }
 
@@ -118,12 +125,21 @@ class _QuizContentState extends State<QuizContent> {
 
   void playSound() async {
     try {
-      await audioPlayer.play(
-          AssetSource(
-              failedAnswer == null ? CORRECT_SOUND_PATH : INCORRECT_SOUND_PATH),
-          mode: PlayerMode.lowLatency);
+      await correctSoundPlayer.stop();
+      await incorrectSoundPlayer.stop();
+      await correctSoundPlayer.seek(Duration.zero);
+      await incorrectSoundPlayer.seek(Duration.zero);
+
+      await (failedAnswer == null ? correctSoundPlayer : incorrectSoundPlayer)
+          .play();
+
+      await (failedAnswer == null ? correctSoundPlayer : incorrectSoundPlayer)
+          .stop();
+
+      await (failedAnswer == null ? correctSoundPlayer : incorrectSoundPlayer)
+          .seek(Duration.zero);
     } catch (e) {
-      printd("Error playing audio.");
+      printd("Error playing audio. $e");
     }
   }
 
